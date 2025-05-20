@@ -1,0 +1,35 @@
+Package: riemstats
+Title: Riemannian ANOVA statistics
+Version: 0.1.0
+Authors@R: c(
+    person(
+        given = "Nicolas",
+        family = "Escobar",
+        role = c("aut", "cre"),
+        email = "nescoba@iu.edu",
+        comment = c(ORCID = "0009-0006-0800-5692")
+    ),
+    person(
+        given = "Jaroslaw",
+        family = "Harezlak",
+        role = "ths"
+    ))
+Description: Implements various Riemannian ANOVA statistics.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Depends: 
+    R (>= 4.3.0)
+Imports: 
+    Matrix
+Suggests: 
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
+URL: https://nicoesve.github.io/riemstats/
+BugReports: https://github.com/nicoesve/riemstats/issues
+Config/testthat/edition: 3
+Maintainer: Nicolas Escobar <nescoba@iu.edu>

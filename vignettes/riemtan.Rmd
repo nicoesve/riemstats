@@ -1,0 +1,22 @@
+---
+title: "riemstats"
+author: "Nicolas Escobar, Jaroslaw Harezlak"
+date: "2025-02-12"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{riemstats}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Introduction
+
+Hello
+
