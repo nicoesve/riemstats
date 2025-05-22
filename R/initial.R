@@ -96,7 +96,7 @@ one_bootstrap <- function(x, hat_sigma, hat_gamma, geom, stat_fun) {
     stat_fun()
 }
 
-#' Compute p-values using bootstrap and MANOVA
+#' Compute p-values using bootstrap
 #'
 #' Computes a bootstrap-based p-value and for a given super sample.
 #' The statistic used for the bootstrap can be specified
