@@ -2,13 +2,13 @@
   "name": "R Development",
   "build": {
     "dockerfile": "Dockerfile"
-  },
-  "customizations": {
-    "vscode": {
-      "extensions": [
-        "REditorSupport.r",
-        "RDebugger.r-debugger"
-      ]
-    }
-  }
+  } //,
+  // "customizations": {
+  //   "vscode": {
+  //     "extensions": [
+  //       "REditorSupport.r",
+  //       "RDebugger.r-debugger"
+  //     ]
+  //   }
+  // }
 }
