@@ -115,11 +115,11 @@ one_bootstrap <- function(x, hat_sigma, hat_gamma, geom, stat_fun) {
 #' The function computes the statistic on the observed data
 #' and compares it to the distribution
 #' of statistics computed on bootstrapped samples.
-p_val <- function(ss, geom, stat_fun = log_wilks_lambda, den) {
+riem_anova_pval <- function(ss, geom, stat_fun = log_wilks_lambda, den) {
   ss$gather()
   ss$compute_fmean()
 
-  # estimate the parameters
+  # estimate the parameters (the dispersion is estimated by pooling)
   hat_sigma <- ss$frechet_mean
   hat_gamma <- ss$list_of_samples |>
     purrr::walk(\(s) s$compute_sample_cov()) |>
@@ -139,37 +139,4 @@ p_val <- function(ss, geom, stat_fun = log_wilks_lambda, den) {
     ) |>
     (\(v) stat_val > v)() |>
     mean()
-}
-
-one_pval <- function(n, ref, disp, S, geom, i, j) {
-  list(
-    riemtan::rspdnorm(n, ref, disp, geom),
-    riemtan::rspdnorm(n, S, disp, geom)
-  ) |>
-    riemtan::CSuperSample$new() |>
-    p_val(geom, i, j)
-}
-
-rej_frac <- function(ref, disp, S, geom, k, n, i) {
-  1:k |>
-    furrr::future_map(
-      \(j) {
-        one_pval(n, ref, disp, S, geom, i, j)
-      },
-      .options = furrr::furrr_options(seed = TRUE)
-    ) |>
-    (\(x) {
-      saveRDS(
-        x,
-        paste0(stem, "pvals_step", i, ".rds")
-      )
-      x
-    })() |>
-    purrr::map(\(l) list(bmask = (l$bpval < 0.05), mmask = (l$mpval < 0.05))) |>
-    (\(bigl) {
-      list(
-        bfrac = bigl |> purrr::map_lgl(\(sml) sml$bmask) |> mean(),
-        mfrac = bigl |> purrr::map_lgl(\(sml) sml$mmask) |> mean()
-      )
-    })()
 }
