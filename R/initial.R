@@ -96,9 +96,30 @@ one_bootstrap <- function(x, hat_sigma, hat_gamma, geom, stat_fun) {
     stat_fun()
 }
 
-p_val <- function(ss, geom, i, j) {
+#' Compute p-values using bootstrap and MANOVA
+#'
+#' Computes a bootstrap-based p-value and for a given super sample.
+#' The statistic used for the bootstrap can be specified
+#' via the `stat_fun` argument.
+#'
+#' @param ss An object of class `CSuperSample`.
+#' @param geom The geometry parameter to be passed to `riemtan::rspdnorm`.
+#' @param stat_fun A function to compute a statistic
+#' on the `CSuperSample` object (default: `log_wilks_lambda`).
+#' @param den The number of bootstrap samples to generate
+#' for estimating the p-value.
+#'
+#' @return numeric A bootstrap p-value.
+#'
+#' @details
+#' The function computes the statistic on the observed data
+#' and compares it to the distribution
+#' of statistics computed on bootstrapped samples.
+p_val <- function(ss, geom, stat_fun = log_wilks_lambda, den) {
   ss$gather()
   ss$compute_fmean()
+
+  # estimate the parameters
   hat_sigma <- ss$frechet_mean
   hat_gamma <- ss$list_of_samples |>
     purrr::walk(\(s) s$compute_sample_cov()) |>
@@ -106,38 +127,18 @@ p_val <- function(ss, geom, i, j) {
     Reduce(`+`, x = _) |>
     (\(x) x / (ss$sample_size - 1))() |>
     as("dpoMatrix") |>
-    pack()
+    Matrix::pack()
 
-  log_wilks_lambda_val <- ss$Log_Wilks_Lambda()
-  boot_vals <- 1:100 |>
+  # reference statistic value
+  stat_val <- stat_fun(ss)
+
+  # bootstraping
+  1:den |>
     purrr::map_dbl(
-      \(m) {
-        one_bootstrap(ss, hat_sigma, hat_gamma, geom)
-      }
+      \(m) one_bootstrap(ss, hat_sigma, hat_gamma, geom, stat_fun)
     ) |>
-    (\(x) {
-      saveRDS(
-        x,
-        paste0(stem, "loglambdas_step", i, "iter", j, ".rds")
-      )
-      x
-    })() |>
-    (\(v) log_wilks_lambda_val > v)() |>
+    (\(v) stat_val > v)() |>
     mean()
-
-  manova_p_val <- ss$list_of_samples |>
-    purrr::walk(\(y) {
-      y$compute_unvecs()
-      y$compute_conns()
-    }) |>
-    purrr::map(\(y) y$connectomes) |>
-    purrr::map(\(z) z |> purrr::map(as.matrix)) |>
-    print() |>
-    purrr::map(wrap.spd) |>
-    do.call(riem.fanova, args = _) |>
-    _$p.value
-
-  list(bpval = boot_vals, mpval = manova_p_val)
 }
 
 one_pval <- function(n, ref, disp, S, geom, i, j) {
