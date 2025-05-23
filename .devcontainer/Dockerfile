@@ -10,7 +10,11 @@ RUN apt-get update && apt-get install -y \
 RUN R -e "install.packages('renv')"
 
 # Use renv to install and track other R packages
-RUN R -e "renv::init(bare = TRUE); renv::install(c('here', 'testthat', 'devtools', 'roxygen2', 'pkgdown', 'tinytex')); renv::install('nicoesve/riemtan'); renv::snapshot()"
+RUN R -e "renv::init(bare = TRUE); renv::install(c('here', 'testthat', 'devtools', 'roxygen2', 'pkgdown', 'tinytex', 'BiocManager')); renv::install('nicoesve/riemtan')"
+
+RUN R -e "BiocManager::install(sva)"
+
+RUN R -e "renv::snapshot()"
 
 RUN apt-get update && apt-get install -y git
 RUN apt-get update && apt-get install -y pandoc
