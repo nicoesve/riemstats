@@ -1,3 +1,9 @@
+format_matr <- function(x) {
+  x |>
+    as("dpoMatrix") |>
+    Matrix::pack()
+}
+
 # normalization: Center and scale each row of a matrix
 normalization <- function(si) {
   on <- matrix(1, nrow = 1, ncol = ncol(si))
@@ -24,18 +30,40 @@ ts2corr <- function(ts) {
 }
 
 harmonize_with_combat <- function(super_sample) {
-  super_sample$list_of_samples |>
-  purrr::imap(
-    \(sample, idx) {
-      sample$compute_tangents()
-      sample$compute_vecs() 
-      data <- sample$vector_images
-      batch <- rep(idx, data |> nrow())
-      cbind(data, batch)
-    }
-  ) |>
-  purrr::reduce(rbind) |>
-  (\(m) list(m[, -ncol(m)], m[, ncol(m)]))() |>
-  do.call(what = sva::ComBat, args = l) ## TODO: Reconstruct
-}
+  # applying ComBat
+  harmonized_vector_images <- super_sample$list_of_samples |>
+    purrr::imap(
+      \(sample, idx) {
+        sample$compute_tangents()
+        sample$compute_vecs()
+        data <- sample$vector_images
+        batch <- rep(idx, data |> nrow())
+        cbind(data, batch)
+      }
+    ) |>
+    purrr::reduce(rbind) |>
+    (\(m) list(m[, -ncol(m)], m[, ncol(m)]))() |>
+    do.call(what = sva::ComBat, args = _)
 
+  # Reconstructing
+  batches <- harmonized_vector_images[, ncol(harmonized_vector_images)]
+  vec_imgs <- harmonized_vector_images[
+    , -ncol(harmonized_vector_images)
+  ]
+
+  harmonized_vector_images |>
+    nrow() |>
+    seq_len() |>
+    split(batches) |>
+    purrr::map(
+      \(idx) {
+        riemtan::CSample$new(
+          vec_imgs = vec_imgs[idx, ],
+          centered = FALSE,
+          ref_pt = idx |> length() |> diag() |> format_matr(),
+          metric_obj = super_sample$riem_metr
+        )
+      }
+    ) |>
+    riemtan::CSuperSample$new()
+}
