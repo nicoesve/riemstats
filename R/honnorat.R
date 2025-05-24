@@ -1,10 +1,25 @@
+#' Format a Matrix as a Packed dpoMatrix
+#'
+#' Converts a matrix to a packed symmetric positive definite matrix
+#' (`dpoMatrix`) using the Matrix package.
+#'
+#' @param x A numeric matrix.
+#' @return A packed `dpoMatrix` object.
+#' @importFrom Matrix pack
+#' @export
 format_matr <- function(x) {
   x |>
     as("dpoMatrix") |>
     Matrix::pack()
 }
 
-# normalization: Center and scale each row of a matrix
+#' Normalize Rows of a Matrix
+#'
+#' Centers and scales each row of a matrix to have zero mean and unit norm.
+#'
+#' @param si A numeric matrix.
+#' @return A matrix with each row centered and scaled.
+#' @export
 normalization <- function(si) {
   on <- matrix(1, nrow = 1, ncol = ncol(si))
   eps <- 1e-9
@@ -20,7 +35,15 @@ normalization <- function(si) {
   si / pmax(aux_matr %*% on, eps * on)
 }
 
-# ts2corr: Normalize time series and compute OAS-shrunk correlation matrix
+#' Compute OAS-Shrunk Correlation Matrix from Time Series
+#'
+#' Normalizes a time series matrix and computes
+#' its OAS-shrunk correlation matrix.
+#'
+#' @param ts A numeric matrix representing time series data.
+#' @return A shrunk correlation matrix.
+#' @importFrom CovTools CovEst.2010OAS
+#' @export
 ts2corr <- function(ts) {
   ts <- normalization(ts)
   c <- ts %*% t(ts)
@@ -29,6 +52,15 @@ ts2corr <- function(ts) {
     _$S
 }
 
+#' Harmonize Vector Images Using ComBat
+#'
+#' Applies the ComBat batch effect correction to vector images
+#' in a `CSuperSample` object and reconstructs harmonized samples.
+#'
+#' @param super_sample A `CSuperSample` object containing samples to harmonize.
+#' @return A new `CSuperSample` object with harmonized vector images.
+#' @importFrom sva ComBat
+#' @export
 harmonize_with_combat <- function(super_sample) {
   # applying ComBat
   harmonized_vector_images <- super_sample$list_of_samples |>
