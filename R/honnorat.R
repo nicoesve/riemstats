@@ -22,3 +22,20 @@ ts2corr <- function(ts) {
     CovTools::CovEst.2010OAS() |>
     _$S
 }
+
+harmonize_with_combat <- function(super_sample) {
+  super_sample$list_of_samples |>
+  purrr::imap(
+    \(sample, idx) {
+      sample$compute_tangents()
+      sample$compute_vecs() 
+      data <- sample$vector_images
+      batch <- rep(idx, data |> nrow())
+      cbind(data, batch)
+    }
+  ) |>
+  purrr::reduce(rbind) |>
+  (\(m) list(m[, -ncol(m)], m[, ncol(m)]))() |>
+  do.call(what = sva::ComBat, args = l) ## TODO: Reconstruct
+}
+
