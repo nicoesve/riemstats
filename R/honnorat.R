@@ -61,7 +61,7 @@ ts2corr <- function(ts) {
 #' @return A new `CSuperSample` object with harmonized vector images.
 #' @importFrom sva ComBat
 #' @export
-harmonize_with_combat <- function(super_sample) {
+combat_harmonization <- function(super_sample) {
   # applying ComBat
   harmonized_vector_images <- super_sample$list_of_samples |>
     purrr::imap(
@@ -92,9 +92,87 @@ harmonize_with_combat <- function(super_sample) {
         riemtan::CSample$new(
           vec_imgs = vec_imgs[idx, ],
           centered = FALSE,
-          ref_pt = idx |> length() |> diag() |> format_matr(),
+          ref_pt = super_sample$matrix_size |> diag() |> format_matr(),
           metric_obj = super_sample$riem_metr
         )
+      }
+    ) |>
+    riemtan::CSuperSample$new()
+}
+
+
+#' Harmonize Tangent Images Across Batches Using Rigid Correction
+#'
+#' Applies a rigid harmonization procedure to tangent images in a `CSuperSample` object.
+#' First, batch means are subtracted from each sample's tangent images (batch correction),
+#' then the overall mean is added back (global correction). The harmonized tangent images
+#' are used to reconstruct new `CSample` objects, which are collected into a new `CSuperSample`.
+#'
+#' @param super_sample A `CSuperSample` object containing samples to harmonize.
+#' @return A new `CSuperSample` object with harmonized tangent images.
+#' @export
+#'
+#' @details
+#' This function performs harmonization in two steps:
+#' \enumerate{
+#'   \item \strong{Batch Correction:} For each batch, the mean of its tangent images is subtracted from each tangent image in the batch.
+#'   \item \strong{Global Correction:} The overall mean (across all batches) of tangent images is added back to each tangent image.
+#' }
+#' The harmonized tangent images are then used to reconstruct samples using the reference point and metric from the original `CSuperSample`.
+#'
+#' @examples
+#' # Assuming `super_sample` is a CSuperSample object:
+#' # harmonized <- rigid_harmonization(super_sample)
+rigid_harmonization <- function(super_sample) {
+  tangent_collection <- super_sample$list_of_samples |>
+    purrr::map(
+      \(sample) {
+        sample$compute_tangents()
+        sample$tangent_images
+      }
+    )
+
+  batch_means <- tangent_collection |>
+    purrr::map(
+      \(l) {
+        l |>
+          purrr::reduce("+") |>
+          (\(x) x / length(l))()
+      }
+    )
+
+  overall_mean <- tangent_collection |>
+    do.call(what = c, args = _) |>
+    purrr::reduce("+") |>
+    (\(x) x / super_sample$sample_size)()
+
+  list(tangent_collection, batch_means) |>
+    # Batch correction
+    purrr::pmap(
+      \(list_of_tangents, batch_mean){
+        list_of_tangents |>
+          purrr::map(
+            \(tgt) tgt - batch_mean
+          )
+      }
+    ) |>
+    purrr::map(
+      \(list_of_tangents) {
+        aux_id <- super_sample$matrix_size |>
+          diag() |>
+          format_matr()
+
+        # Global correction
+        list_of_tangents |>
+          purrr::map(
+            \(tgt) tgt + overall_mean
+          ) |>
+          riemtan::CSample$new(
+            tan_imgs = _,
+            centered = FALSE,
+            ref_pt = aux_id,
+            metric_obj = super_sample$riem_metr
+          )
       }
     ) |>
     riemtan::CSuperSample$new()
