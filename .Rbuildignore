@@ -4,3 +4,4 @@
 ^docs/
 ^README\.md
 ^\.here$
+^Dockerfile$
