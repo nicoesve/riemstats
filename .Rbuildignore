@@ -1,4 +1,6 @@
+^renv$
+^renv\.lock$
 ^\.gitignore$
-^\.devcontainer/
 ^docs/
 ^README\.md
+^\.here$
