@@ -2,45 +2,44 @@ fanova <- function(super_sample) {
   k <- super_sample$list_of_samples |> length()
   n <- super_sample$sample_size
 
-  super_sample$list_of_samples |>
-    purrr::map(
-      \(sample) {
-        sample$vector_images |>
-          apply(X = _, MARGIN = 1, FUN = function(x) sum(x^2))
-      }
-    ) |>
-    (\(x) {
-      # TODO
+  group_stats <- super_sample$list_of_samples |>
+    purrr::map(\(sample) {
+      sample$compute_dists()
+      sample$distances
+    }) |>
+    purrr::map(\(vec_of_dists) {
+      list(
+        group_sig_2 = mean(vec_of_dists^4) - mean(vec_of_dists^2)^2,
+        group_v = mean(vec_of_dists^2),
+        group_sample_size = length(vec_of_dists)
+      )
     })()
 
+  group_sig_2s <- group_stats |> purrr::map_dbl(\(stats) stats$group_sig_2)
+  group_vs <- group_stats |> purrr::map_dbl(\(stats) stats$group_v)
 
-  # get local information
-  vec.nj <- rep(0, k)
-  vec.Vj <- rep(0, k)
-  vec.sig2j <- rep(0, k)
-  for (j in 1:k) {
-    distj <- as.vector(distvecs[[j]])
-    nj <- length(distj)
+  super_sample$gather
+  super_sample$full_sample$compute_dists()
+  pooled_v <- mean(super_sample$full_sample$distances^2)
 
-    vec.nj[j] <- nj
-    vec.Vj[j] <- sum(distj^2) / nj
-    vec.sig2j[j] <- (sum(distj^4) / nj) - ((sum(distj^2) / nj)^2)
-  }
+  group_rel_sizes <- group_stats |>
+    purrr::map_dbl(\(stats) stats$group_sample_size) |>
+    (\(x) x / super_sample$full_sample$sample_size)()
 
-  # get global information
-  Vp <- sum(distall^2) / n
-  lbdj <- vec.nj / n
+  F_stat <- pooled_v - sum(group_rel_sizes * group_vs)
 
-  # compute statistics
-  Fn <- Vp - sum(lbdj * vec.Vj)
-  Un <- 0
-  for (j in 1:(k - 1)) {
-    for (l in (j + 1):k) {
-      Un <- Un + ((lbdj[j] * lbdj[l]) / (vec.sig2j[j] * vec.sig2j[l])) * ((vec.Vj[j] - vec.Vj[l])^2)
-    }
-  }
-  term1 <- (n * Un) / sum(vec.nj / vec.sig2j)
-  term2 <- (n * (Fn^2)) / sum((vec.nj^2) * vec.sig2j)
+  # Vectorized computation of Un
+  idx_mat <- which(upper.tri(matrix(0, k, k)), arr.ind = TRUE)
+  j_idx <- idx_mat[, 1]
+  l_idx <- idx_mat[, 2]
+  Un <- sum(
+    (group_rel_sizes[j_idx] * group_rel_sizes[l_idx]) /
+      (group_sig_2s[j_idx] * group_sig_2s[l_idx]) *
+      (group_vs[j_idx] - group_vs[l_idx])^2
+  )
+
+  term1 <- (n * Un) / sum(group_rel_sizes / group_sig_2s)
+  term2 <- (n * (F_stat^2)) / sum((group_rel_sizes^2) * group_sig_2s)
   thestat <- term1 + term2
 
   # compute p-value
