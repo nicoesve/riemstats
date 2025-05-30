@@ -1,4 +1,11 @@
-testthat("OK", {
+test_pd_mats <- list(
+  Matrix::Matrix(c(2.0, 0.5, 0.5, 3.0), nrow = 2) |>
+    Matrix::nearPD() |> _$mat |> Matrix::pack(),
+  Matrix::Matrix(c(1.5, 0.3, 0.3, 2.5), nrow = 2) |>
+    Matrix::nearPD() |> _$mat |> Matrix::pack()
+)
+
+test_that("OK", {
   TRUE |> expect_true()
 })
 
@@ -31,13 +38,13 @@ test_that("ANOVA stats work", {
       )
     })()
   ss |>
-    frechet_anova()() |>
+    frechet_anova() |>
     (\(x) {
       list(
         x |> is.null() |> expect_false(),
         x |> inherits("numeric") |> expect_true(),
-        x |> expect_gt(0),
-        x |> expect_lt(1)
+        x |> (\(x) x >= 0)() |> expect_true(),
+        x |> (\(x) x <= 1)() |> expect_true()
       )
     })()
   ss |>
@@ -46,8 +53,8 @@ test_that("ANOVA stats work", {
       list(
         x |> is.null() |> expect_false(),
         x |> inherits("numeric") |> expect_true(),
-        x |> expect_gt(0),
-        x |> expect_lt(1)
+        x |> (\(x) x >= 0)() |> expect_true(),
+        x |> (\(x) x <= 1)() |> expect_true()
       )
     })()
 })

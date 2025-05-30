@@ -134,7 +134,7 @@ riem_anova <- function(ss, stat_fun = log_wilks_lambda, den = 100) {
   # bootstraping
   1:den |>
     purrr::map_dbl(
-      \(m) one_bootstrap(ss, hat_sigma, hat_gamma, ss$riem_metr, stat_fun)
+      \(m) one_bootstrap(ss, hat_sigma, hat_gamma, ss$riem_metric, stat_fun)
     ) |>
     (\(v) stat_val > v)() |>
     mean()

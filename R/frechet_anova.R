@@ -20,7 +20,7 @@ frechet_anova <- function(super_sample) {
         group_v = mean(vec_of_dists^2),
         group_sample_size = length(vec_of_dists)
       )
-    })()
+    })
 
   group_sig_2s <- group_stats |> purrr::map_dbl(\(stats) stats$group_sig_2)
   group_vs <- group_stats |> purrr::map_dbl(\(stats) stats$group_v)
