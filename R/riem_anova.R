@@ -115,7 +115,7 @@ one_bootstrap <- function(x, hat_sigma, hat_gamma, geom, stat_fun) {
 #' The function computes the statistic on the observed data
 #' and compares it to the distribution
 #' of statistics computed on bootstrapped samples.
-riem_anova_pval <- function(ss, geom, stat_fun = log_wilks_lambda, den) {
+riem_anova <- function(ss, geom, stat_fun = log_wilks_lambda, den) {
   ss$gather()
   ss$compute_fmean()
 
