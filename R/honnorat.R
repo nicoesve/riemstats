@@ -103,10 +103,13 @@ combat_harmonization <- function(super_sample) {
 
 #' Harmonize Tangent Images Across Batches Using Rigid Correction
 #'
-#' Applies a rigid harmonization procedure to tangent images in a `CSuperSample` object.
-#' First, batch means are subtracted from each sample's tangent images (batch correction),
-#' then the overall mean is added back (global correction). The harmonized tangent images
-#' are used to reconstruct new `CSample` objects, which are collected into a new `CSuperSample`.
+#' Applies a rigid harmonization procedure to tangent images
+#' in a `CSuperSample` object.
+#' First, batch means are subtracted from each sample's
+#' tangent images (batch correction), then the overall mean is added back
+#' (global correction). The harmonized tangent images are used
+#' to reconstruct new `CSample` objects, which are collected
+#' into a new `CSuperSample`.
 #'
 #' @param super_sample A `CSuperSample` object containing samples to harmonize.
 #' @return A new `CSuperSample` object with harmonized tangent images.
@@ -115,14 +118,13 @@ combat_harmonization <- function(super_sample) {
 #' @details
 #' This function performs harmonization in two steps:
 #' \enumerate{
-#'   \item \strong{Batch Correction:} For each batch, the mean of its tangent images is subtracted from each tangent image in the batch.
-#'   \item \strong{Global Correction:} The overall mean (across all batches) of tangent images is added back to each tangent image.
+#'   \item \strong{Batch Correction:} For each batch, the mean
+#' of its tangent images is subtracted from each tangent image in the batch.
+#'   \item \strong{Global Correction:} The overall mean (across all batches)
+#' of tangent images is added back to each tangent image.
 #' }
-#' The harmonized tangent images are then used to reconstruct samples using the reference point and metric from the original `CSuperSample`.
-#'
-#' @examples
-#' # Assuming `super_sample` is a CSuperSample object:
-#' # harmonized <- rigid_harmonization(super_sample)
+#' The harmonized tangent images are then used to reconstruct samples
+#' using the reference point and metric from the original `CSuperSample`.
 rigid_harmonization <- function(super_sample) {
   tangent_collection <- super_sample$list_of_samples |>
     purrr::map(
