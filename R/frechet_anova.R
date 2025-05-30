@@ -1,3 +1,10 @@
+#' Frechet ANOVA Test Statistic
+#'
+#' Computes the Frechet ANOVA test statistic and its p-value for a given super-sample object.
+#'
+#' @param super_sample An object of class CSuperSample (see riemtan package)
+#'
+#' @return A list with two elements: the test statistic and the p-value.
 fanova <- function(super_sample) {
   k <- super_sample$list_of_samples |> length()
   n <- super_sample$sample_size
