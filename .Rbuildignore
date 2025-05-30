@@ -5,3 +5,4 @@
 ^README\.md
 ^\.here$
 ^Dockerfile$
+^_pkgdown.yml
