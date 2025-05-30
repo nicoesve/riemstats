@@ -23,7 +23,12 @@ RoxygenNote: 7.3.2
 Depends: 
     R (>= 4.3.0)
 Imports: 
-    Matrix
+    Matrix,
+    CovTools,
+    sva,
+    purrr,
+    riemtan,
+    methods
 Suggests: 
     testthat (>= 3.0.0),
     knitr,

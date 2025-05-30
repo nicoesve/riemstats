@@ -9,7 +9,7 @@
 #' @export
 format_matr <- function(x) {
   x |>
-    as("dpoMatrix") |>
+    methods::as("dpoMatrix") |>
     Matrix::pack()
 }
 

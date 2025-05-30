@@ -125,7 +125,7 @@ riem_anova <- function(ss, stat_fun = log_wilks_lambda, den = 100) {
     purrr::map(\(s) (s$sample_size - 1) * s$sample_cov) |>
     Reduce(`+`, x = _) |>
     (\(x) x / (ss$sample_size - 1))() |>
-    as("dpoMatrix") |>
+    methods::as("dpoMatrix") |>
     Matrix::pack()
 
   # reference statistic value
