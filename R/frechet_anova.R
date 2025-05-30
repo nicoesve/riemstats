@@ -4,8 +4,8 @@
 #'
 #' @param super_sample An object of class CSuperSample (see riemtan package)
 #'
-#' @return A list with two elements: the test statistic and the p-value.
-fanova <- function(super_sample) {
+#' @return The p-value.
+frechet_anova <- function(super_sample) {
   k <- super_sample$list_of_samples |> length()
   n <- super_sample$sample_size
 
@@ -50,7 +50,5 @@ fanova <- function(super_sample) {
   thestat <- term1 + term2
 
   # compute p-value
-  pvalue <- stats::pchisq(thestat, df = (k - 1), lower.tail = FALSE)
-
-  list(thestat, pvalue)
+  stats::pchisq(thestat, df = (k - 1), lower.tail = FALSE)
 }
