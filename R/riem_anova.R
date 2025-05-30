@@ -103,7 +103,6 @@ one_bootstrap <- function(x, hat_sigma, hat_gamma, geom, stat_fun) {
 #' via the `stat_fun` argument.
 #'
 #' @param ss An object of class `CSuperSample`.
-#' @param geom The geometry parameter to be passed to `riemtan::rspdnorm`.
 #' @param stat_fun A function to compute a statistic
 #' on the `CSuperSample` object (default: `log_wilks_lambda`).
 #' @param den The number of bootstrap samples to generate
@@ -115,7 +114,7 @@ one_bootstrap <- function(x, hat_sigma, hat_gamma, geom, stat_fun) {
 #' The function computes the statistic on the observed data
 #' and compares it to the distribution
 #' of statistics computed on bootstrapped samples.
-riem_anova <- function(ss, geom, stat_fun = log_wilks_lambda, den) {
+riem_anova <- function(ss, stat_fun = log_wilks_lambda, den = 100) {
   ss$gather()
   ss$compute_fmean()
 
@@ -135,7 +134,7 @@ riem_anova <- function(ss, geom, stat_fun = log_wilks_lambda, den) {
   # bootstraping
   1:den |>
     purrr::map_dbl(
-      \(m) one_bootstrap(ss, hat_sigma, hat_gamma, geom, stat_fun)
+      \(m) one_bootstrap(ss, hat_sigma, hat_gamma, ss$riem_metr, stat_fun)
     ) |>
     (\(v) stat_val > v)() |>
     mean()
