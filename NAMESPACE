@@ -2,7 +2,11 @@
 
 export(combat_harmonization)
 export(format_matr)
+export(log_wilks_lambda)
 export(normalization)
+export(one_bootstrap)
+export(pillais_trace)
+export(riem_anova)
 export(rigid_harmonization)
 export(ts2corr)
 importFrom(CovTools,CovEst.2010OAS)

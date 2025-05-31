@@ -12,6 +12,7 @@
 #'
 #' @details
 #' Wilks' lambda is a test statistic for the ANOVA test decribed in (to appear)
+#' @export
 log_wilks_lambda <- function(super_sample) {
   if (!inherits(super_sample, "CSuperSample")) {
     stop("Argument 'super_sample' must be an object of class 'CSuperSample'.")
@@ -42,6 +43,7 @@ log_wilks_lambda <- function(super_sample) {
 #' @details
 #' Pillai's trace is a test statistic for
 #' the ANOVA test decribed in (to appear).
+#' @export
 pillais_trace <- function(super_sample) {
   if (!inherits(super_sample, "CSuperSample")) {
     stop("Argument 'super_sample' must be an object of class 'CSuperSample'.")
@@ -87,6 +89,7 @@ pillais_trace <- function(super_sample) {
 #' each subsample in \code{x} according to the specified parameters,
 #' then aggregates the resampled data into a new
 #' \code{CSuperSample} and computes the desired statistic.
+#' @export
 one_bootstrap <- function(x, hat_sigma, hat_gamma, geom, stat_fun) {
   x$list_of_samples |>
     purrr::map(
@@ -114,6 +117,7 @@ one_bootstrap <- function(x, hat_sigma, hat_gamma, geom, stat_fun) {
 #' The function computes the statistic on the observed data
 #' and compares it to the distribution
 #' of statistics computed on bootstrapped samples.
+#' @export
 riem_anova <- function(ss, stat_fun = log_wilks_lambda, den = 100) {
   ss$gather()
   ss$compute_fmean()
