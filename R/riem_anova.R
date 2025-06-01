@@ -127,7 +127,9 @@ riem_anova <- function(ss, stat_fun = log_wilks_lambda, den = 100) {
   hat_gamma <- ss$list_of_samples |>
     purrr::walk(\(s) s$compute_sample_cov()) |>
     purrr::map(\(s) (s$sample_size - 1) * s$sample_cov) |>
+    print() |>
     Reduce(`+`, x = _) |>
+    print(x) |>
     (\(x) x / (ss$sample_size - 1))() |>
     methods::as("dpoMatrix") |>
     Matrix::pack()
