@@ -4,7 +4,7 @@
 \alias{riem_anova}
 \title{Compute p-values using bootstrap}
 \usage{
-riem_anova(ss, stat_fun = log_wilks_lambda, den = 100)
+riem_anova(ss, stat_fun = log_wilks_lambda, den = 5)
 }
 \arguments{
 \item{ss}{An object of class \code{CSuperSample}.}

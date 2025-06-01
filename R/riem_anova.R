@@ -118,7 +118,7 @@ one_bootstrap <- function(x, hat_sigma, hat_gamma, geom, stat_fun) {
 #' and compares it to the distribution
 #' of statistics computed on bootstrapped samples.
 #' @export
-riem_anova <- function(ss, stat_fun = log_wilks_lambda, den = 100) {
+riem_anova <- function(ss, stat_fun = log_wilks_lambda, den = 5) {
   ss$gather()
   ss$compute_fmean()
 
