@@ -14,7 +14,7 @@ Authors@R: c(
         family = "Harezlak",
         role = "ths"
     ))
-Author: Nicolas Escobar [aut, cre], Jaroslaw Harezlak [ths]
+Author: Nicolas Escobar [aut, cre] (<https://orcid.org/0009-0006-0800-5692>), Jaroslaw Harezlak [ths]
 Maintainer: Nicolas Escobar <nescoba@iu.edu>
 Description: Implements various statistical procedures for multiple samples of symmetric positive definite (SPD) matrices including Frechet ANOVA (<doi:10.1093/biomet/asz052>), Riemannian ANOVA with Wilks' lambda and Pillai's trace statistics, as well as harmonization methods such as ComBat (<doi:10.1016/j.media.2023.103043>) and rigid harmonization (<doi:10.1101/2021.09.01.458579>).
 License: MIT + file LICENSE
