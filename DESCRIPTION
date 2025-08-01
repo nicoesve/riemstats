@@ -36,6 +36,6 @@ Suggests:
     knitr,
     rmarkdown
 VignetteBuilder: knitr
-URL: https://nicoesve.github.io/riemstats/
+URL: https://github.com/nicoesve/riemstats
 BugReports: https://github.com/nicoesve/riemstats/issues
 Config/testthat/edition: 3
