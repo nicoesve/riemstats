@@ -1,5 +1,5 @@
 Package: riemstats
-Title: Riemannian ANOVA statistics
+Title: Riemannian ANOVA Statistics for SPD Matrices
 Version: 0.1.0
 Authors@R: c(
     person(
@@ -14,7 +14,9 @@ Authors@R: c(
         family = "Harezlak",
         role = "ths"
     ))
-Description: Implements various Riemannian ANOVA statistics.
+Author: Nicolas Escobar [aut, cre], Jaroslaw Harezlak [ths]
+Maintainer: Nicolas Escobar <nescoba@iu.edu>
+Description: Implements various statistical procedures for multiple samples of symmetric positive definite (SPD) matrices including Frechet ANOVA (<doi:10.1093/biomet/asz052>), Riemannian ANOVA with Wilks' lambda and Pillai's trace statistics, as well as harmonization methods such as ComBat (<doi:10.1016/j.media.2023.103043>) and rigid harmonization (<doi:10.1101/2021.09.01.458579>).
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -37,4 +39,3 @@ VignetteBuilder: knitr
 URL: https://nicoesve.github.io/riemstats/
 BugReports: https://github.com/nicoesve/riemstats/issues
 Config/testthat/edition: 3
-Maintainer: Nicolas Escobar <nescoba@iu.edu>

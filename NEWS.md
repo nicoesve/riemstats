@@ -1,20 +1,11 @@
 # riemstats 0.1.0
 
-## Dependencies
-- Depends on R (>= 4.3.0)
-- Imports the following packages:
-  - Matrix
-  - methods
-  - expm
-  - R6
-  - purrr
-  - MASS
-  - furrr
-- Suggests the following packages for testing and documentation:
-  - testthat (>= 3.0.0)
-  - knitr
-  - rmarkdown
-
-## Miscellaneous
-- Added a `LICENSE` file with the MIT license.
-- Maintainer: Nicolas Escobar <nescoba@iu.edu>
+* Initial CRAN submission.
+* Added `frechet_anova()` function for Frechet ANOVA test statistic on SPD matrices.
+* Added `riem_anova()` function for Riemannian ANOVA analysis.
+* Added `log_wilks_lambda()` for computing log Wilks' lambda statistic.
+* Added `pillais_trace()` for computing Pillai's trace statistic.
+* Added `one_bootstrap()` for bootstrap hypothesis testing.
+* Added `combat_harmonization()` for ComBat harmonization of SPD matrices.
+* Added `rigid_harmonization()` for rigid harmonization of SPD matrices.
+* Added utility functions: `format_matr()`, `normalization()`, `ts2corr()`.
