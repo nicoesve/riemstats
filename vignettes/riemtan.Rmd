@@ -42,3 +42,84 @@ Traditional statistical methods fail to address these challenges simultaneously,
 
 By integrating harmonization and ANOVA within a Riemannian framework, `riemstats` enables rigorous statistical analysis of multi-site connectome data while preserving the geometric properties that make these matrices meaningful representations of brain connectivity.
 
+# Mathematical Background
+
+This section provides a brief introduction to the mathematical concepts underlying the Riemannian statistical methods in `riemstats`. While the package handles these computations internally, understanding these concepts helps in interpreting results and choosing appropriate methods.
+
+## Riemannian Manifolds: A Brief Primer
+
+A Riemannian manifold is a smooth geometric space where we can measure distances and angles locally. Unlike Euclidean spaces where the shortest path between two points is always a straight line, manifolds can have curvature that affects distances and paths.
+
+Key concepts:
+- **Geodesic**: The shortest path between two points on a manifold (analogous to straight lines in Euclidean space)
+- **Metric**: A way to measure distances that respects the manifold's geometry
+- **Curvature**: How the manifold bends, affecting distances and statistical properties
+
+For statistical analysis on manifolds, we need specialized methods that respect this geometric structure, rather than treating data as if it lived in flat Euclidean space.
+
+## Symmetric Positive Definite Matrices as a Riemannian Manifold
+
+Correlation and covariance matrices from brain connectivity data are symmetric positive definite (SPD) matrices. The space of SPD matrices forms a Riemannian manifold with specific geometric properties:
+
+```{r spd-example, eval=FALSE}
+# Example: SPD matrices have special properties
+# A correlation matrix is SPD:
+# - Symmetric: C = C^T
+# - Positive definite: all eigenvalues > 0
+# - Lives on a curved manifold, not flat space
+```
+
+The manifold of SPD matrices has negative curvature, meaning:
+- The Euclidean average of SPD matrices may not be SPD
+- Distances measured with standard Euclidean metrics don't reflect true geometric relationships
+- Statistical methods must account for this curvature
+
+The Riemannian metric commonly used for SPD matrices is the affine-invariant metric:
+$$d_R(C_1, C_2) = \|\log(C_1^{-1/2} C_2 C_1^{-1/2})\|_F$$
+
+where $\|\cdot\|_F$ is the Frobenius norm and $\log$ is the matrix logarithm.
+
+## Tangent Space and Logarithmic Mapping
+
+While the SPD manifold is curved, we can work locally in a flat space called the tangent space. This is analogous to how Earth's surface is curved, but locally appears flat.
+
+The **tangent space** at a point (typically the mean) provides:
+- A linear approximation of the manifold
+- A space where standard Euclidean statistics can be applied
+- Computational efficiency for many operations
+
+Key operations:
+- **Logarithmic map**: Projects points from the manifold to the tangent space
+- **Exponential map**: Projects points from the tangent space back to the manifold
+
+```{r tangent-space, eval=FALSE}
+# In riemstats, tangent space operations are used internally
+# Example workflow:
+# 1. Compute Fréchet mean of SPD matrices
+# 2. Project data to tangent space at the mean
+# 3. Apply statistical tests in tangent space
+# 4. Interpret results in context of original manifold
+```
+
+## Fréchet Means and Their Role
+
+The Fréchet mean generalizes the concept of average to Riemannian manifolds. It's defined as the point that minimizes the sum of squared geodesic distances to all data points:
+
+$$\bar{C} = \arg\min_{C \in \mathcal{M}} \sum_{i=1}^n d_R^2(C, C_i)$$
+
+Properties of the Fréchet mean:
+- Respects the manifold geometry (unlike Euclidean mean)
+- Always produces a valid SPD matrix
+- Serves as a natural reference point for tangent space projections
+- Used as the basis for ANOVA decompositions in `riemstats`
+
+```{r frechet-mean, eval=FALSE}
+# The Fréchet mean is central to riemstats analyses
+# It's computed automatically when using:
+# - frechet_anova() for group comparisons
+# - As reference for tangent space in riem_anova()
+# - During harmonization to preserve geometric structure
+```
+
+This mathematical framework ensures that statistical analyses in `riemstats` properly account for the geometric structure of brain connectivity matrices, leading to more accurate and interpretable results.
+
