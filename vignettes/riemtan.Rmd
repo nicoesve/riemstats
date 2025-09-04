@@ -22,35 +22,23 @@ The `riemstats` package provides specialized statistical methods for analyzing b
 
 ## The Multi-Site Connectome Challenge
 
-Modern neuroimaging studies often collect brain connectivity data across multiple sites to increase sample size and generalizability. However, this introduces significant challenges:
-
-- **Site effects**: Different scanners, protocols, and populations introduce systematic biases
-- **Non-Euclidean data**: Connectivity matrices are SPD matrices that lie on a curved manifold
-- **Nested structure**: Data naturally groups into sites (batches) and biological conditions
+Modern neuroimaging studies often collect brain connectivity data across multiple sites to increase sample size and generalizability. However, this introduces significant challenges associated to the fact that different scanners, protocols, and populations introduce systematic biases.
 
 Traditional statistical methods fail to address these challenges simultaneously, either ignoring the geometric structure of SPD matrices or lacking appropriate harmonization capabilities.
 
 ## Core Capabilities
 
-`riemstats` addresses these challenges through two complementary approaches:
+`riemstats` addresses these challenges through two complementary sets of tools:
 
 1. **Harmonization Methods**: Remove unwanted site/scanner effects while preserving biological signals
-   - ComBat harmonization adapted for SPD matrices
-   - Rigid geometric alignment methods
-   - Flexible normalization strategies
+  - ComBat harmonization adapted for SPD matrices (see Honorro et al.)
+  - Rigid geometric alignment methods (see Simeon et al.)
 
-2. **Riemannian ANOVA**: Test for group differences while respecting SPD geometry
-   - Wilks' lambda and Pillai's trace statistics on the tangent space
-   - Fréchet ANOVA using Riemannian distances
-   - Bootstrap inference for robust significance testing
-
-## Typical Workflow
-
-This package is designed for the common neuroimaging analysis pipeline where researchers:
-1. Collect connectivity matrices from multiple sites/scanners
-2. Need to remove site-specific technical variation
-3. Want to test for group differences (e.g., patients vs. controls)
-4. Require methods that properly handle the SPD nature of connectivity matrices
+2. **ANOVA Methods**: Test for group differences while respecting SPD geometry
+  - Fréchet ANOVA using Riemannian distances (see Muller et al.)
+  - Riemannian ANOVA (closer to classical MANOVA, see Escobar, Harezlak.)
+    - Wilks' lambda and Pillai's trace statistics on the tangent space  
+    - Bootstrap inference for robust significance testing
 
 By integrating harmonization and ANOVA within a Riemannian framework, `riemstats` enables rigorous statistical analysis of multi-site connectome data while preserving the geometric properties that make these matrices meaningful representations of brain connectivity.
 
