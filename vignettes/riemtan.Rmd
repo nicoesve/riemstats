@@ -50,16 +50,19 @@ This section demonstrates a complete analysis pipeline for multi-site connectome
 
 ```{r load-package}
 library(riemstats)
+library(riemtan)  # Required for CSuperSample and CSample classes
 
 # Example: Load multi-site connectome data
-# Assuming data is organized as a list of SPD matrices
-# with associated site and group labels
-data("example_connectomes")  # This would load example data
+# Data should be organized as CSuperSample objects from the riemtan package
+# Each site/batch is a CSample containing SPD matrices
 
-# Structure: 
-# - connectomes: list of n x n SPD matrices
-# - site_labels: vector indicating site/scanner for each subject
-# - group_labels: vector indicating group membership (e.g., control vs patient)
+# Example structure (placeholder for actual data loading):
+# site1_matrices <- list(matrix1, matrix2, ...)  # List of SPD matrices for site 1
+# site2_matrices <- list(matrix3, matrix4, ...)  # List of SPD matrices for site 2
+# 
+# sample1 <- riemtan::CSample$new(matrices = site1_matrices)
+# sample2 <- riemtan::CSample$new(matrices = site2_matrices)
+# super_sample <- riemtan::CSuperSample$new(list(sample1, sample2))
 ```
 
 ### Data Harmonization
@@ -68,17 +71,12 @@ When working with multi-site data, harmonization is crucial to remove site-speci
 
 ```{r harmonization}
 # Apply ComBat harmonization for SPD matrices
-harmonized_data <- combat_spd(
-  matrices = connectomes,
-  batch = site_labels,
-  mod = model.matrix(~ group_labels)  # Preserve group differences
-)
+# Input must be a CSuperSample object
+harmonized_super_sample <- combat_harmonization(super_sample)
 
 # Alternative: Rigid geometric alignment
-aligned_data <- rigid_align_spd(
-  matrices = connectomes,
-  reference_site = 1  # Align all sites to site 1
-)
+# Also works with CSuperSample objects
+aligned_super_sample <- rigid_harmonization(super_sample)
 ```
 
 ### Statistical Analysis with Riemannian ANOVA
@@ -87,23 +85,28 @@ After harmonization, test for group differences using methods that respect the S
 
 ```{r anova-analysis}
 # Fréchet ANOVA for overall group differences
-frechet_result <- frechet_anova(
-  matrices = harmonized_data,
-  groups = group_labels,
-  distance = "riemann"  # Use Riemannian distance
+# Returns p-value directly
+frechet_p_value <- frechet_anova(harmonized_super_sample)
+
+# Riemannian ANOVA with bootstrap inference
+# Can use log_wilks_lambda (default) or pillais_trace as stat_fun
+riemann_p_value_wilks <- riem_anova(
+  ss = harmonized_super_sample,
+  stat_fun = log_wilks_lambda,
+  den = 1000  # Number of bootstrap samples
 )
 
-# Riemannian MANOVA with bootstrap inference
-riemann_result <- riemann_manova(
-  matrices = harmonized_data,
-  groups = group_labels,
-  test = "wilks",  # Or "pillai" for Pillai's trace
-  n_bootstrap = 1000
+# Using Pillai's trace
+riemann_p_value_pillai <- riem_anova(
+  ss = harmonized_super_sample,
+  stat_fun = pillais_trace,
+  den = 1000
 )
 
 # Display results
-print(frechet_result)
-print(riemann_result)
+cat("Fréchet ANOVA p-value:", frechet_p_value, "\n")
+cat("Riemannian ANOVA (Wilks) p-value:", riemann_p_value_wilks, "\n")
+cat("Riemannian ANOVA (Pillai) p-value:", riemann_p_value_pillai, "\n")
 ```
 
 ### Interpreting Results
