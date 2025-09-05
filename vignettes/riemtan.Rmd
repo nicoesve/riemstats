@@ -93,4 +93,81 @@ Indeed, Riemannian methods in `riemstats` solve these problems by:
 3. **Geometry-Preserving Harmonization**: Removing site effects while maintaining SPD structure
 4. **Valid Statistical Tests**: ANOVA methods that account for manifold curvature
 
+# Typical Workflow
+
+This section demonstrates a complete analysis pipeline for multi-site connectome data using `riemstats`. We'll walk through loading data, applying harmonization, and performing statistical tests.
+
+## Loading the Package and Data
+
+```{r load-package}
+library(riemstats)
+library(riemtan) # Required for CSuperSample and CSample classes
+
+# Example: Load multi-site connectome data
+# Data should be organized as CSuperSample objects from the riemtan package
+# Each site/batch is a CSample containing SPD matrices
+
+# Example structure (placeholder for actual data loading):
+# site1_matrices <- list(matrix1, matrix2, ...)  # List of SPD matrices for site 1
+# site2_matrices <- list(matrix3, matrix4, ...)  # List of SPD matrices for site 2
+#
+# sample1 <- riemtan::CSample$new(matrices = site1_matrices)
+# sample2 <- riemtan::CSample$new(matrices = site2_matrices)
+# super_sample <- riemtan::CSuperSample$new(list(sample1, sample2))
+```
+
+## Data Harmonization
+
+When working with multi-site data, harmonization is crucial to remove site-specific effects while preserving biological signals:
+
+```{r harmonization}
+# Apply ComBat harmonization for SPD matrices
+# Input must be a CSuperSample object
+harmonized_super_sample <- combat_harmonization(super_sample)
+
+# Alternative: Rigid geometric alignment
+# Also works with CSuperSample objects
+aligned_super_sample <- rigid_harmonization(super_sample)
+```
+
+## Statistical Analysis with Riemannian ANOVA
+
+After harmonization, test for group differences using methods that respect the SPD geometry:
+
+```{r anova-analysis}
+# Fréchet ANOVA for overall group differences
+# Returns p-value directly
+frechet_p_value <- frechet_anova(harmonized_super_sample)
+
+# Riemannian ANOVA with bootstrap inference
+# Can use log_wilks_lambda (default) or pillais_trace as stat_fun
+riemann_p_value_wilks <- riem_anova(
+  ss = harmonized_super_sample,
+  stat_fun = log_wilks_lambda,
+  den = 1000 # Number of bootstrap samples
+)
+
+# Using Pillai's trace
+riemann_p_value_pillai <- riem_anova(
+  ss = harmonized_super_sample,
+  stat_fun = pillais_trace,
+  den = 1000
+)
+
+# Display results
+cat("Fréchet ANOVA p-value:", frechet_p_value, "\n")
+cat("Riemannian ANOVA (Wilks) p-value:", riemann_p_value_wilks, "\n")
+cat("Riemannian ANOVA (Pillai) p-value:", riemann_p_value_pillai, "\n")
+```
+
+## Interpreting Results
+
+The analysis provides several key outputs:
+
+- **Test statistics**: Quantify the magnitude of group differences
+- **P-values**: Assess statistical significance (adjusted for multiple comparisons when applicable)
+- **Effect sizes**: Measure the practical importance of observed differences
+- **Bootstrap confidence intervals**: Provide robust inference without parametric assumptions
+
+
 
