@@ -42,84 +42,74 @@ Traditional statistical methods fail to address these challenges simultaneously,
 
 By integrating harmonization and ANOVA within a Riemannian framework, `riemstats` enables rigorous statistical analysis of multi-site connectome data while preserving the geometric properties that make these matrices meaningful representations of brain connectivity.
 
-# Mathematical Background
+# Why Standard Methods Fail for Connectome Data
 
-This section provides a brief introduction to the mathematical concepts underlying the Riemannian statistical methods in `riemstats`. While the package handles these computations internally, understanding these concepts helps in interpreting results and choosing appropriate methods.
+Brain connectivity matrices (connectomes) are symmetric positive definite (SPD) matrices - they have special mathematical properties that make standard statistical methods inappropriate. This section explains why ordinary ComBat and ANOVA fail for SPD data and why specialized Riemannian methods are necessary.
 
-## Riemannian Manifolds: A Brief Primer
+## The Problem with Treating SPD Matrices as Vectors
 
-A Riemannian manifold is a smooth geometric space where we can measure distances and angles locally. Unlike Euclidean spaces where the shortest path between two points is always a straight line, manifolds can have curvature that affects distances and paths.
+Standard methods like ordinary ComBat and ANOVA treat matrices as if they were simple vectors in Euclidean space. This approach has critical flaws:
 
-Key concepts:
-- **Geodesic**: The shortest path between two points on a manifold (analogous to straight lines in Euclidean space)
-- **Metric**: A way to measure distances that respects the manifold's geometry
-- **Curvature**: How the manifold bends, affecting distances and statistical properties
+### 1. The Averaging Problem
 
-For statistical analysis on manifolds, we need specialized methods that respect this geometric structure, rather than treating data as if it lived in flat Euclidean space.
-
-## Symmetric Positive Definite Matrices as a Riemannian Manifold
-
-Correlation and covariance matrices from brain connectivity data are symmetric positive definite (SPD) matrices. The space of SPD matrices forms a Riemannian manifold with specific geometric properties:
-
-```{r spd-example, eval=FALSE}
-# Example: SPD matrices have special properties
-# A correlation matrix is SPD:
-# - Symmetric: C = C^T
-# - Positive definite: all eigenvalues > 0
-# - Lives on a curved manifold, not flat space
+```{r averaging-problem, eval=FALSE}
+# Consider two correlation matrices from different subjects
+# Standard averaging (element-wise mean) can produce:
+# - Matrices that are no longer positive definite
+# - Invalid correlation values (outside [-1, 1])
+# - Loss of the geometric relationships between brain regions
 ```
 
-The manifold of SPD matrices has negative curvature, meaning:
-- The Euclidean average of SPD matrices may not be SPD
-- Distances measured with standard Euclidean metrics don't reflect true geometric relationships
-- Statistical methods must account for this curvature
+When you average SPD matrices element-wise (as ordinary methods do), the result may not even be a valid SPD matrix. This is because SPD matrices don't form a flat vector space - they live on a curved manifold.
 
-The Riemannian metric commonly used for SPD matrices is the affine-invariant metric:
-$$d_R(C_1, C_2) = \|\log(C_1^{-1/2} C_2 C_1^{-1/2})\|_F$$
+### 2. Distance Distortions
 
-where $\|\cdot\|_F$ is the Frobenius norm and $\log$ is the matrix logarithm.
+Standard Euclidean distance between matrices ignores their geometric structure:
+- Two very similar connectivity patterns might appear far apart
+- Two different patterns might appear close
+- Statistical tests based on these distances give misleading results
 
-## Tangent Space and Logarithmic Mapping
+### 3. Site Effect Removal Violations
 
-While the SPD manifold is curved, we can work locally in a flat space called the tangent space. This is analogous to how Earth's surface is curved, but locally appears flat.
+Ordinary ComBat removes site effects by:
+1. Treating each matrix element independently
+2. Applying location/scale adjustments element-wise
+3. Ignoring the constraint that results must be SPD
 
-The **tangent space** at a point (typically the mean) provides:
-- A linear approximation of the manifold
-- A space where standard Euclidean statistics can be applied
-- Computational efficiency for many operations
+This can produce "harmonized" data that:
+- No longer represents valid connectivity matrices
+- Has lost important geometric relationships
+- Contains negative eigenvalues (mathematically invalid for correlations)
 
-Key operations:
-- **Logarithmic map**: Projects points from the manifold to the tangent space
-- **Exponential map**: Projects points from the tangent space back to the manifold
+## Why Ordinary ANOVA Fails
 
-```{r tangent-space, eval=FALSE}
-# In riemstats, tangent space operations are used internally
-# Example workflow:
-# 1. Compute Fréchet mean of SPD matrices
-# 2. Project data to tangent space at the mean
-# 3. Apply statistical tests in tangent space
-# 4. Interpret results in context of original manifold
+Standard ANOVA assumes data lies in Euclidean space where:
+- The mean is computed by simple averaging
+- Distances are measured with straight lines
+- Variance has the same meaning everywhere
+
+For SPD matrices, these assumptions break down:
+
+```{r anova-failures, eval=FALSE}
+# Problems with ordinary ANOVA on SPD matrices:
+# 1. Group means may not be valid SPD matrices
+# 2. Between-group distances are incorrectly measured
+# 3. Test statistics don't account for manifold curvature
+# 4. Type I error rates can be inflated or deflated
 ```
 
-## Fréchet Means and Their Role
+## The Riemannian Solution
 
-The Fréchet mean generalizes the concept of average to Riemannian manifolds. It's defined as the point that minimizes the sum of squared geodesic distances to all data points:
+Riemannian methods in `riemstats` solve these problems by:
 
-$$\bar{C} = \arg\min_{C \in \mathcal{M}} \sum_{i=1}^n d_R^2(C, C_i)$$
+1. **Proper Averaging**: Using the Fréchet mean, which always produces valid SPD matrices
+2. **Correct Distances**: Measuring distances along the manifold (geodesics) rather than through Euclidean space
+3. **Geometry-Preserving Harmonization**: Removing site effects while maintaining SPD structure
+4. **Valid Statistical Tests**: ANOVA methods that account for manifold curvature
 
-Properties of the Fréchet mean:
-- Respects the manifold geometry (unlike Euclidean mean)
-- Always produces a valid SPD matrix
-- Serves as a natural reference point for tangent space projections
-- Used as the basis for ANOVA decompositions in `riemstats`
-
-```{r frechet-mean, eval=FALSE}
-# The Fréchet mean is central to riemstats analyses
-# It's computed automatically when using:
-# - frechet_anova() for group comparisons
-# - As reference for tangent space in riem_anova()
-# - During harmonization to preserve geometric structure
-```
-
-This mathematical framework ensures that statistical analyses in `riemstats` properly account for the geometric structure of brain connectivity matrices, leading to more accurate and interpretable results.
+The key insight is that SPD matrices form a Riemannian manifold - a curved geometric space. By respecting this geometry, `riemstats` ensures:
+- All operations produce valid SPD matrices
+- Statistical tests have correct Type I error rates
+- Biological signals are preserved during harmonization
+- Results are interpretable as actual brain connectivity patterns
 
