@@ -50,26 +50,14 @@ Brain connectivity matrices (connectomes) are symmetric positive definite (SPD) 
 
 Standard methods like ordinary ComBat and ANOVA treat matrices as if they were simple vectors in Euclidean space. This approach has critical flaws:
 
-### 1. The Averaging Problem
-
-```{r averaging-problem, eval=FALSE}
-# Consider two correlation matrices from different subjects
-# Standard averaging (element-wise mean) can produce:
-# - Matrices that are no longer positive definite
-# - Invalid correlation values (outside [-1, 1])
-# - Loss of the geometric relationships between brain regions
-```
-
-When you average SPD matrices element-wise (as ordinary methods do), the result may not even be a valid SPD matrix. This is because SPD matrices don't form a flat vector space - they live on a curved manifold.
-
-### 2. Distance Distortions
+### 1. Distance Distortions
 
 Standard Euclidean distance between matrices ignores their geometric structure:
 - Two very similar connectivity patterns might appear far apart
 - Two different patterns might appear close
 - Statistical tests based on these distances give misleading results
 
-### 3. Site Effect Removal Violations
+### 2. Site Effect Removal Violations
 
 Ordinary ComBat removes site effects by:
 1. Treating each matrix element independently
@@ -88,28 +76,21 @@ Standard ANOVA assumes data lies in Euclidean space where:
 - Distances are measured with straight lines
 - Variance has the same meaning everywhere
 
-For SPD matrices, these assumptions break down:
-
-```{r anova-failures, eval=FALSE}
-# Problems with ordinary ANOVA on SPD matrices:
-# 1. Group means may not be valid SPD matrices
-# 2. Between-group distances are incorrectly measured
-# 3. Test statistics don't account for manifold curvature
-# 4. Type I error rates can be inflated or deflated
-```
+For SPD matrices, these assumptions break down.
 
 ## The Riemannian Solution
-
-Riemannian methods in `riemstats` solve these problems by:
-
-1. **Proper Averaging**: Using the Fréchet mean, which always produces valid SPD matrices
-2. **Correct Distances**: Measuring distances along the manifold (geodesics) rather than through Euclidean space
-3. **Geometry-Preserving Harmonization**: Removing site effects while maintaining SPD structure
-4. **Valid Statistical Tests**: ANOVA methods that account for manifold curvature
 
 The key insight is that SPD matrices form a Riemannian manifold - a curved geometric space. By respecting this geometry, `riemstats` ensures:
 - All operations produce valid SPD matrices
 - Statistical tests have correct Type I error rates
 - Biological signals are preserved during harmonization
 - Results are interpretable as actual brain connectivity patterns
+
+Indeed, Riemannian methods in `riemstats` solve these problems by:
+
+1. **Proper Averaging**: Using the Fréchet mean, which always produces valid SPD matrices
+2. **Correct Distances**: Measuring distances along the manifold (geodesics) rather than through Euclidean space
+3. **Geometry-Preserving Harmonization**: Removing site effects while maintaining SPD structure
+4. **Valid Statistical Tests**: ANOVA methods that account for manifold curvature
+
 
