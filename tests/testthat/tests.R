@@ -457,17 +457,15 @@ test_that("format_matr functionality", {
   valid_matrix <- matrix(c(2, 1, 1, 2), nrow = 2)
   formatted <- format_matr(valid_matrix)
   
-  # Check that output is a packed dpoMatrix
-  expect_true(inherits(formatted, "dpoMatrix"))
-  expect_true(formatted@packed)
+  # Check that output is a packed dppMatrix
+  expect_true(inherits(formatted, "dppMatrix"))
   
   # Test with larger positive definite matrix
   large_matrix <- diag(c(1, 2, 3)) + 0.1 * matrix(rnorm(9), 3, 3)
   large_matrix <- (large_matrix + t(large_matrix)) / 2  # Ensure symmetry
   large_matrix <- large_matrix + 3 * diag(3)  # Ensure positive definiteness
   formatted_large <- format_matr(large_matrix)
-  expect_true(inherits(formatted_large, "dpoMatrix"))
-  expect_true(formatted_large@packed)
+  expect_true(inherits(formatted_large, "dppMatrix"))
 })
 
 test_that("ts2corr functionality", {
