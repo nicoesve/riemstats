@@ -80,7 +80,8 @@ combat_harmonization <- function(super_sample) {
   }
 
   # applying ComBat
-  harmonized_vector_images <- super_sample$list_of_samples |>
+  # Prepare data for ComBat
+  combined_data <- super_sample$list_of_samples |>
     purrr::imap(
       \(sample, idx) {
         sample$compute_tangents()
@@ -90,17 +91,21 @@ combat_harmonization <- function(super_sample) {
         cbind(data, batch)
       }
     ) |>
-    purrr::reduce(rbind) |>
-    (\(m) list(m[, -ncol(m)], m[, ncol(m)]))() |>
-    do.call(what = sva::ComBat, args = _)
+    purrr::reduce(rbind)
+  
+  # Extract data matrix and batch vector
+  data_matrix <- combined_data[, -ncol(combined_data)]
+  batch_vector <- combined_data[, ncol(combined_data)]
+  
+  # ComBat expects features x samples, so transpose the data
+  harmonized_vector_images <- sva::ComBat(dat = t(data_matrix), batch = batch_vector) |>
+    t()  # Transpose back to samples x features
 
   # Reconstructing
-  batches <- harmonized_vector_images[, ncol(harmonized_vector_images)]
-  vec_imgs <- harmonized_vector_images[
-    , -ncol(harmonized_vector_images)
-  ]
+  batches <- batch_vector
+  vec_imgs <- harmonized_vector_images
 
-  harmonized_vector_images |>
+  vec_imgs |>
     nrow() |>
     seq_len() |>
     split(batches) |>
