@@ -190,7 +190,7 @@ rigid_harmonization <- function(super_sample) {
             tan_imgs = _,
             centered = FALSE,
             ref_pt = aux_id,
-            metric_obj = super_sample$riem_metr
+            metric_obj = super_sample$geom
           )
       }
     ) |>
