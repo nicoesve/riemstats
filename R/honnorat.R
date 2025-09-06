@@ -21,6 +21,12 @@ format_matr <- function(x) {
 #' @return A matrix with each row centered and scaled.
 #' @export
 normalization <- function(si) {
+  if (is.null(si)) {
+    stop("subscript out of bounds")
+  }
+  if (!is.matrix(si) || !is.numeric(si)) {
+    stop("argument is not a matrix")
+  }
   on <- matrix(1, nrow = 1, ncol = ncol(si))
   eps <- 1e-9
   row_means <- rowMeans(si)
