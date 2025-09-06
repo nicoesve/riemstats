@@ -62,6 +62,11 @@ ts2corr <- function(ts) {
 #' @importFrom sva ComBat
 #' @export
 combat_harmonization <- function(super_sample) {
+  # Input validation
+  if (!inherits(super_sample, "CSuperSample")) {
+    stop("super_sample must be a CSuperSample object")
+  }
+
   # applying ComBat
   harmonized_vector_images <- super_sample$list_of_samples |>
     purrr::imap(
