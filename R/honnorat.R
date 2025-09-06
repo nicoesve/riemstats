@@ -8,6 +8,12 @@
 #' @importFrom Matrix pack
 #' @export
 format_matr <- function(x) {
+  if (!is.matrix(x)) {
+    stop("cannot coerce to matrix")
+  }
+  if (!is.numeric(x)) {
+    stop("invalid 'type' (not numeric)")
+  }
   x |>
     methods::as("dpoMatrix") |>
     Matrix::pack()
