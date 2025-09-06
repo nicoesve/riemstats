@@ -201,23 +201,23 @@ test_that("harmonization functions input validation", {
   # Test combat_harmonization with invalid inputs
   expect_error(
     combat_harmonization("not_a_supersample"),
-    "subscript out of bounds|object of type 'character' is not subsettable"
+    "super_sample must be a CSuperSample object"
   )
   expect_error(
     combat_harmonization(123),
-    "subscript out of bounds|object of type 'double' is not subsettable"
+    "super_sample must be a CSuperSample object"
   )
   expect_error(
     combat_harmonization(list()),
-    "subscript out of bounds"
+    "super_sample must be a CSuperSample object"
   )
   expect_error(
     combat_harmonization(matrix(1:4, nrow = 2)),
-    "subscript out of bounds|object of type 'integer' is not subsettable"
+    "super_sample must be a CSuperSample object"
   )
   expect_error(
     combat_harmonization(NULL),
-    "subscript out of bounds|object of type 'NULL' is not subsettable"
+    "super_sample must be a CSuperSample object"
   )
   
   # Test rigid_harmonization with invalid inputs
