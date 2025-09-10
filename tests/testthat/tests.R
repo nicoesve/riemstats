@@ -13,7 +13,7 @@ test_that("ANOVA stats work", {
   library(riemtan)
   data("airm")
   sam1 <- test_pd_mats |>
-    purrr::map(\(x) 2 * x) |>
+    purrr::map(\(x) (2 * x) |> Matrix::unpack() |> as("dpoMatrix") |> Matrix::pack()) |>
     CSample$new(metric_obj = airm)
   sam2 <- test_pd_mats |> CSample$new(metric_obj = airm)
   ss <- list(sam1, sam2) |> CSuperSample$new()
@@ -357,10 +357,10 @@ test_that("combat_harmonization functionality", {
   
   # Create test data with known batch effects
   sam1 <- test_pd_mats |>
-    purrr::map(\(x) 2 * x) |>
+    purrr::map(\(x) (2 * x) |> Matrix::unpack() |> as("dpoMatrix") |> Matrix::pack()) |>
     CSample$new(metric_obj = airm)
   sam2 <- test_pd_mats |> 
-    purrr::map(\(x) 0.5 * x) |>
+    purrr::map(\(x) (0.5 * x) |> Matrix::unpack() |> as("dpoMatrix") |> Matrix::pack()) |>
     CSample$new(metric_obj = airm)
   sam3 <- test_pd_mats |>
     CSample$new(metric_obj = airm)
@@ -393,10 +393,10 @@ test_that("rigid_harmonization functionality", {
   
   # Create test data with different batch effects
   sam1 <- test_pd_mats |>
-    purrr::map(\(x) 3 * x) |>
+    purrr::map(\(x) (3 * x) |> Matrix::unpack() |> as("dpoMatrix") |> Matrix::pack()) |>
     CSample$new(metric_obj = airm)
   sam2 <- test_pd_mats |> 
-    purrr::map(\(x) 0.8 * x) |>
+    purrr::map(\(x) (0.8 * x) |> Matrix::unpack() |> as("dpoMatrix") |> Matrix::pack()) |>
     CSample$new(metric_obj = airm)
   
   ss <- list(sam1, sam2) |> CSuperSample$new()
@@ -502,7 +502,7 @@ test_that("one_bootstrap functionality", {
   # Create test supersample
   sam1 <- test_pd_mats |> CSample$new(metric_obj = airm)
   sam2 <- test_pd_mats |>
-    purrr::map(\(x) 1.1 * x) |>
+    purrr::map(\(x) (1.1 * x) |> Matrix::unpack() |> as("dpoMatrix") |> Matrix::pack()) |>
     CSample$new(metric_obj = airm)
   ss <- list(sam1, sam2) |> CSuperSample$new()
   
@@ -537,10 +537,10 @@ test_that("harmonization functions preserve statistical properties", {
   # Create test data with measurable batch effects
   set.seed(42)
   sam1 <- test_pd_mats |>
-    purrr::map(\(x) 2 * x + 0.1 * diag(2)) |>
+    purrr::map(\(x) (2 * x + 0.1 * diag(2)) |> Matrix::unpack() |> as("dpoMatrix") |> Matrix::pack()) |>
     CSample$new(metric_obj = airm)
   sam2 <- test_pd_mats |>
-    purrr::map(\(x) 0.5 * x + 0.05 * diag(2)) |>
+    purrr::map(\(x) (0.5 * x + 0.05 * diag(2)) |> Matrix::unpack() |> as("dpoMatrix") |> Matrix::pack()) |>
     CSample$new(metric_obj = airm)
   
   ss <- list(sam1, sam2) |> CSuperSample$new()
