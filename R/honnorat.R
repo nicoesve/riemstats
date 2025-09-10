@@ -8,6 +8,12 @@
 #' @importFrom Matrix pack
 #' @export
 format_matr <- function(x) {
+  if (!is.matrix(x)) {
+    stop("cannot coerce to matrix")
+  }
+  if (!is.numeric(x)) {
+    stop("invalid 'type' (not numeric)")
+  }
   x |>
     methods::as("dpoMatrix") |>
     Matrix::pack()
@@ -21,18 +27,20 @@ format_matr <- function(x) {
 #' @return A matrix with each row centered and scaled.
 #' @export
 normalization <- function(si) {
-  on <- matrix(1, nrow = 1, ncol = ncol(si))
+  if (is.null(si)) {
+    stop("subscript out of bounds")
+  }
+  if (!is.matrix(si) || !is.numeric(si)) {
+    stop("argument is not a matrix")
+  }
+  
   eps <- 1e-9
   row_means <- rowMeans(si)
-  si <- si -
-    matrix(
-      row_means,
-      nrow = nrow(si),
-      ncol = ncol(si), byrow = FALSE
-    ) %*% on
+  # Center each row by subtracting its mean
+  si <- si - row_means
   row_norms <- sqrt(rowSums(si * si))
-  aux_matr <- matrix(row_norms, nrow = nrow(si), ncol = ncol(si), byrow = FALSE)
-  si / pmax(aux_matr %*% on, eps * on)
+  # Scale each row by its norm
+  si / pmax(row_norms, eps)
 }
 
 #' Compute OAS-Shrunk Correlation Matrix from Time Series
@@ -62,8 +70,14 @@ ts2corr <- function(ts) {
 #' @importFrom sva ComBat
 #' @export
 combat_harmonization <- function(super_sample) {
+  # Input validation
+  if (!inherits(super_sample, "CSuperSample")) {
+    stop("super_sample must be a CSuperSample object")
+  }
+
   # applying ComBat
-  harmonized_vector_images <- super_sample$list_of_samples |>
+  # Prepare data for ComBat
+  combined_data <- super_sample$list_of_samples |>
     purrr::imap(
       \(sample, idx) {
         sample$compute_tangents()
@@ -73,17 +87,21 @@ combat_harmonization <- function(super_sample) {
         cbind(data, batch)
       }
     ) |>
-    purrr::reduce(rbind) |>
-    (\(m) list(m[, -ncol(m)], m[, ncol(m)]))() |>
-    do.call(what = sva::ComBat, args = _)
+    purrr::reduce(rbind)
+  
+  # Extract data matrix and batch vector
+  data_matrix <- combined_data[, -ncol(combined_data)]
+  batch_vector <- combined_data[, ncol(combined_data)]
+  
+  # ComBat expects features x samples, so transpose the data
+  harmonized_vector_images <- sva::ComBat(dat = t(data_matrix), batch = batch_vector) |>
+    t()  # Transpose back to samples x features
 
   # Reconstructing
-  batches <- harmonized_vector_images[, ncol(harmonized_vector_images)]
-  vec_imgs <- harmonized_vector_images[
-    , -ncol(harmonized_vector_images)
-  ]
+  batches <- batch_vector
+  vec_imgs <- harmonized_vector_images
 
-  harmonized_vector_images |>
+  vec_imgs |>
     nrow() |>
     seq_len() |>
     split(batches) |>
@@ -173,7 +191,7 @@ rigid_harmonization <- function(super_sample) {
             tan_imgs = _,
             centered = FALSE,
             ref_pt = aux_id,
-            metric_obj = super_sample$riem_metr
+            metric_obj = super_sample$geom
           )
       }
     ) |>
