@@ -507,7 +507,8 @@ test_that("one_bootstrap functionality", {
   ss <- list(sam1, sam2) |> CSuperSample$new()
   
   # Create test parameters (these would normally come from MLE estimation)
-  hat_sigma <- 0.1
+  ss$compute_fmean()  # Compute Fréchet mean first
+  hat_sigma <- ss$frechet_mean  # Use Fréchet mean as the mean parameter
   hat_gamma <- diag(ss$matrix_size) |> format_matr()
   geom <- ss$riem_metric
   
