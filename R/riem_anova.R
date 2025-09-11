@@ -18,14 +18,50 @@ log_wilks_lambda <- function(super_sample) {
     stop("Argument 'super_sample' must be an object of class 'CSuperSample'.")
   }
 
-  if (super_sample$Within |> is.null()) super_sample$compute_W()
+  # Compute within-group covariance matrix with error handling
+  if (super_sample$Within |> is.null()) {
+    tryCatch({
+      super_sample$compute_W()
+    }, error = function(e) {
+      stop("Failed to compute within-group covariance matrix: ", e$message)
+    })
+  }
 
-  if (super_sample$Total |> is.null()) super_sample$compute_T()
+  # Compute total covariance matrix with error handling
+  if (super_sample$Total |> is.null()) {
+    tryCatch({
+      super_sample$compute_T()
+    }, error = function(e) {
+      if (grepl("In index:", e$message)) {
+        stop("Failed to compute total covariance matrix due to CSuperSample structure issues. ",
+             "This may be caused by incompatible sample data or a bug in the riemtan package. ",
+             "Try creating CSample objects first before combining into CSuperSample. ",
+             "Original error: ", e$message)
+      } else {
+        stop("Failed to compute total covariance matrix: ", e$message)
+      }
+    })
+  }
 
-  result <- Matrix::determinant(super_sample$Within)$modulus -
-    Matrix::determinant(super_sample$Total)$modulus
+  # Check that matrices are valid
+  if (is.null(super_sample$Within)) {
+    stop("Within-group covariance matrix is NULL after computation")
+  }
+  
+  if (is.null(super_sample$Total)) {
+    stop("Total covariance matrix is NULL after computation")
+  }
 
-  result
+  # Compute determinants with error handling
+  tryCatch({
+    det_within <- Matrix::determinant(super_sample$Within)$modulus
+    det_total <- Matrix::determinant(super_sample$Total)$modulus
+    
+    result <- det_within - det_total
+    result
+  }, error = function(e) {
+    stop("Failed to compute log Wilks' lambda determinants: ", e$message)
+  })
 }
 
 #' Compute Pillai's Trace Statistic
@@ -49,19 +85,54 @@ pillais_trace <- function(super_sample) {
     stop("Argument 'super_sample' must be an object of class 'CSuperSample'.")
   }
 
-  if (super_sample$Within |> is.null()) super_sample$compute_W()
+  # Compute within-group covariance matrix with error handling
+  if (super_sample$Within |> is.null()) {
+    tryCatch({
+      super_sample$compute_W()
+    }, error = function(e) {
+      stop("Failed to compute within-group covariance matrix: ", e$message)
+    })
+  }
 
-  if (super_sample$Total |> is.null()) super_sample$compute_T()
+  # Compute total covariance matrix with error handling
+  if (super_sample$Total |> is.null()) {
+    tryCatch({
+      super_sample$compute_T()
+    }, error = function(e) {
+      if (grepl("In index:", e$message)) {
+        stop("Failed to compute total covariance matrix due to CSuperSample structure issues. ",
+             "This may be caused by incompatible sample data or a bug in the riemtan package. ",
+             "Try creating CSample objects first before combining into CSuperSample. ",
+             "Original error: ", e$message)
+      } else {
+        stop("Failed to compute total covariance matrix: ", e$message)
+      }
+    })
+  }
 
-  result <- (
-    (super_sample$Total - super_sample$Within) %*%
-      solve(super_sample$Total)
-  ) |>
-    as.matrix() |>
-    diag() |>
-    sum()
+  # Check that matrices are valid
+  if (is.null(super_sample$Within)) {
+    stop("Within-group covariance matrix is NULL after computation")
+  }
+  
+  if (is.null(super_sample$Total)) {
+    stop("Total covariance matrix is NULL after computation")
+  }
 
-  result
+  # Compute Pillai's trace with error handling
+  tryCatch({
+    result <- (
+      (super_sample$Total - super_sample$Within) %*%
+        solve(super_sample$Total)
+    ) |>
+      as.matrix() |>
+      diag() |>
+      sum()
+
+    result
+  }, error = function(e) {
+    stop("Failed to compute Pillai's trace: ", e$message)
+  })
 }
 
 #' Bootstrap Statistic for a Super Sample
