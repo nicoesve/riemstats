@@ -111,7 +111,7 @@ combat_harmonization <- function(super_sample) {
           vec_imgs = vec_imgs[idx, ],
           centered = FALSE,
           ref_pt = super_sample$matrix_size |> diag() |> format_matr(),
-          metric_obj = super_sample$riem_metr
+          metric_obj = super_sample$riem_metric
         )
       }
     ) |>
@@ -191,7 +191,7 @@ rigid_harmonization <- function(super_sample) {
             tan_imgs = _,
             centered = FALSE,
             ref_pt = aux_id,
-            metric_obj = super_sample$geom
+            metric_obj = super_sample$riem_metric
           )
       }
     ) |>
