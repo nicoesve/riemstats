@@ -216,7 +216,7 @@ test_that("one_bootstrap functionality", {
   # Create test parameters (these would normally come from MLE estimation)
   ss$compute_fmean()  # Compute Fréchet mean first
   hat_sigma <- ss$frechet_mean  # Use Fréchet mean as the mean parameter
-  hat_gamma <- diag(ss$matrix_size) |> format_matr()
+  hat_gamma <- diag(ss$mfd_dim) |> format_matr()
   geom <- ss$riem_metric
   
   # Define a simple statistic function
