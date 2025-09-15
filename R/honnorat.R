@@ -157,14 +157,14 @@ rigid_harmonization <- function(super_sample) {
       \(l) {
         l |>
           purrr::reduce("+") |>
-          (\(x) x / length(l))()
+          (\(x) Matrix::pack(methods::as(x / length(l), "dsyMatrix")))()
       }
     )
 
   overall_mean <- tangent_collection |>
     do.call(what = c, args = _) |>
     purrr::reduce("+") |>
-    (\(x) x / super_sample$sample_size)()
+    (\(x) Matrix::pack(methods::as(x / super_sample$sample_size, "dsyMatrix")))()
 
   list(tangent_collection, batch_means) |>
     # Batch correction
@@ -172,7 +172,10 @@ rigid_harmonization <- function(super_sample) {
       \(list_of_tangents, batch_mean){
         list_of_tangents |>
           purrr::map(
-            \(tgt) tgt - batch_mean
+            \(tgt) {
+              result <- tgt - batch_mean
+              Matrix::pack(methods::as(result, "dsyMatrix"))
+            }
           )
       }
     ) |>
@@ -185,7 +188,10 @@ rigid_harmonization <- function(super_sample) {
         # Global correction
         list_of_tangents |>
           purrr::map(
-            \(tgt) tgt + overall_mean
+            \(tgt) {
+              result <- tgt + overall_mean
+              Matrix::pack(methods::as(result, "dsyMatrix"))
+            }
           ) |>
           riemtan::CSample$new(
             tan_imgs = _,
