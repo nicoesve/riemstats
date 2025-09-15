@@ -18,6 +18,11 @@ log_wilks_lambda <- function(super_sample) {
     stop("Argument 'super_sample' must be an object of class 'CSuperSample'.")
   }
 
+  # Check for minimum number of groups
+  if (length(super_sample$list_of_samples) < 2) {
+    stop("CSuperSample must contain at least 2 groups for ANOVA analysis")
+  }
+
   # Compute within-group covariance matrix with error handling
   if (super_sample$Within |> is.null()) {
     tryCatch({
@@ -83,6 +88,11 @@ log_wilks_lambda <- function(super_sample) {
 pillais_trace <- function(super_sample) {
   if (!inherits(super_sample, "CSuperSample")) {
     stop("Argument 'super_sample' must be an object of class 'CSuperSample'.")
+  }
+
+  # Check for minimum number of groups
+  if (length(super_sample$list_of_samples) < 2) {
+    stop("CSuperSample must contain at least 2 groups for ANOVA analysis")
   }
 
   # Compute within-group covariance matrix with error handling
@@ -190,6 +200,15 @@ one_bootstrap <- function(x, hat_sigma, hat_gamma, geom, stat_fun) {
 #' of statistics computed on bootstrapped samples.
 #' @export
 riem_anova <- function(ss, stat_fun = log_wilks_lambda, den = 5) {
+  if (!inherits(ss, "CSuperSample")) {
+    stop("Argument 'ss' must be an object of class 'CSuperSample'.")
+  }
+
+  # Check for minimum number of groups
+  if (length(ss$list_of_samples) < 2) {
+    stop("CSuperSample must contain at least 2 groups for ANOVA analysis")
+  }
+
   ss$gather()
   ss$compute_fmean()
 

@@ -30,10 +30,26 @@ normalization <- function(si) {
   if (is.null(si)) {
     stop("subscript out of bounds")
   }
-  if (!is.matrix(si) || !is.numeric(si)) {
+  if (is.list(si) && !is.matrix(si)) {
+    stop("non-numeric argument")
+  }
+  if (!is.matrix(si)) {
     stop("argument is not a matrix")
   }
-  
+  if (!is.numeric(si)) {
+    stop("non-numeric argument")
+  }
+
+  # Check for empty matrix
+  if (length(si) == 0) {
+    stop("cannot normalize empty matrix")
+  }
+
+  # Check for Inf values
+  if (any(is.infinite(si))) {
+    stop("cannot normalize matrix with infinite values")
+  }
+
   eps <- 1e-9
   row_means <- rowMeans(si)
   # Center each row by subtracting its mean
@@ -73,6 +89,11 @@ combat_harmonization <- function(super_sample) {
   # Input validation
   if (!inherits(super_sample, "CSuperSample")) {
     stop("super_sample must be a CSuperSample object")
+  }
+
+  # Check for minimum number of groups
+  if (length(super_sample$list_of_samples) < 2) {
+    stop("CSuperSample must contain at least 2 groups for harmonization")
   }
 
   # applying ComBat
@@ -144,6 +165,16 @@ combat_harmonization <- function(super_sample) {
 #' The harmonized tangent images are then used to reconstruct samples
 #' using the reference point and metric from the original `CSuperSample`.
 rigid_harmonization <- function(super_sample) {
+  # Input validation
+  if (!inherits(super_sample, "CSuperSample")) {
+    stop("super_sample must be a CSuperSample object")
+  }
+
+  # Check for minimum number of groups
+  if (length(super_sample$list_of_samples) < 2) {
+    stop("CSuperSample must contain at least 2 groups for harmonization")
+  }
+
   tangent_collection <- super_sample$list_of_samples |>
     purrr::map(
       \(sample) {
