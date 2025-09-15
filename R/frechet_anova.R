@@ -6,6 +6,15 @@
 #'
 #' @return The p-value.
 frechet_anova <- function(super_sample) {
+  if (!inherits(super_sample, "CSuperSample")) {
+    stop("Argument 'super_sample' must be an object of class 'CSuperSample'.")
+  }
+
+  # Check for minimum number of groups
+  if (length(super_sample$list_of_samples) < 2) {
+    stop("CSuperSample must contain at least 2 groups for ANOVA analysis")
+  }
+
   k <- super_sample$list_of_samples |> length()
   n <- super_sample$sample_size
 

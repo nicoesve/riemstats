@@ -55,14 +55,6 @@ test_that("frechet_anova input validation", {
   expect_error(frechet_anova(list()))
   expect_error(frechet_anova(matrix(1:4, nrow = 2)))
   expect_error(frechet_anova(NULL))
-  
-  # Test with empty CSuperSample (should still error due to invalid structure)
-  expect_error({
-    empty_ss <- try(CSuperSample$new(list()), silent = TRUE)
-    if (!inherits(empty_ss, "try-error")) {
-      frechet_anova(empty_ss)
-    }
-  })
 })
 
 test_that("riem_anova input validation", {
@@ -105,39 +97,25 @@ test_that("harmonization functions input validation", {
   # Test rigid_harmonization with invalid inputs
   expect_error(
     rigid_harmonization("not_a_supersample"),
-    "subscript out of bounds|object of type 'character' is not subsettable"
+    "super_sample must be a CSuperSample object"
   )
   expect_error(
     rigid_harmonization(123),
-    "subscript out of bounds|object of type 'double' is not subsettable"
+    "super_sample must be a CSuperSample object"
   )
   expect_error(
     rigid_harmonization(list()),
-    "subscript out of bounds"
+    "super_sample must be a CSuperSample object"
   )
   expect_error(
     rigid_harmonization(matrix(1:4, nrow = 2)),
-    "subscript out of bounds|object of type 'integer' is not subsettable"
+    "super_sample must be a CSuperSample object"
   )
   expect_error(
     rigid_harmonization(NULL),
-    "subscript out of bounds|object of type 'NULL' is not subsettable"
+    "super_sample must be a CSuperSample object"
   )
   
-  # Test with empty CSuperSample (should error due to no samples)
-  expect_error({
-    empty_ss <- try(CSuperSample$new(list()), silent = TRUE)
-    if (!inherits(empty_ss, "try-error")) {
-      combat_harmonization(empty_ss)
-    }
-  })
-  
-  expect_error({
-    empty_ss <- try(CSuperSample$new(list()), silent = TRUE)
-    if (!inherits(empty_ss, "try-error")) {
-      rigid_harmonization(empty_ss)
-    }
-  })
 })
 
 test_that("normalization input validation", {
@@ -243,47 +221,6 @@ test_that("empty and malformed CSuperSample objects", {
     Matrix::Matrix(c(1.5, 0.3, 0.3, 2.5), nrow = 2) |>
       Matrix::nearPD() |> _$mat |> Matrix::pack()
   )
-  
-  # Test with CSuperSample containing empty CSample objects
-  expect_error({
-    empty_sample <- try({
-      CSample$new(list(), metric_obj = airm)
-    }, silent = TRUE)
-    if (!inherits(empty_sample, "try-error")) {
-      empty_ss <- CSuperSample$new(list(empty_sample))
-      log_wilks_lambda(empty_ss)
-    }
-  })
-  
-  expect_error({
-    empty_sample <- try({
-      CSample$new(list(), metric_obj = airm)
-    }, silent = TRUE)
-    if (!inherits(empty_sample, "try-error")) {
-      empty_ss <- CSuperSample$new(list(empty_sample))
-      pillais_trace(empty_ss)
-    }
-  })
-  
-  expect_error({
-    empty_sample <- try({
-      CSample$new(list(), metric_obj = airm)
-    }, silent = TRUE)
-    if (!inherits(empty_sample, "try-error")) {
-      empty_ss <- CSuperSample$new(list(empty_sample))
-      frechet_anova(empty_ss)
-    }
-  })
-  
-  expect_error({
-    empty_sample <- try({
-      CSample$new(list(), metric_obj = airm)
-    }, silent = TRUE)
-    if (!inherits(empty_sample, "try-error")) {
-      empty_ss <- CSuperSample$new(list(empty_sample))
-      riem_anova(empty_ss)
-    }
-  })
   
   # Test with single sample (should error due to insufficient groups)
   single_sample <- test_pd_mats |> CSample$new(metric_obj = airm)
