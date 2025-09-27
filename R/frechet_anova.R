@@ -5,6 +5,7 @@
 #' @param super_sample An object of class CSuperSample (see riemtan package)
 #'
 #' @return The p-value.
+#' @export
 frechet_anova <- function(super_sample) {
   if (!inherits(super_sample, "CSuperSample")) {
     stop("Argument 'super_sample' must be an object of class 'CSuperSample'.")
