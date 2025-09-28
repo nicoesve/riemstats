@@ -4,7 +4,11 @@
 #'
 #' @param super_sample An object of class CSuperSample (see riemtan package)
 #'
-#' @return The p-value.
+#' @return A list with two elements:
+#' \describe{
+#'   \item{statistic}{The Frechet ANOVA test statistic}
+#'   \item{p_value}{The p-value from the chi-squared test}
+#' }
 #' @export
 frechet_anova <- function(super_sample) {
   if (!inherits(super_sample, "CSuperSample")) {
@@ -60,5 +64,10 @@ frechet_anova <- function(super_sample) {
   thestat <- term1 + term2
 
   # compute p-value
-  stats::pchisq(thestat, df = (k - 1), lower.tail = FALSE)
+  p_value <- stats::pchisq(thestat, df = (k - 1), lower.tail = FALSE)
+
+  list(
+    statistic = thestat,
+    p_value = p_value
+  )
 }
