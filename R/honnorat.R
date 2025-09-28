@@ -187,15 +187,21 @@ rigid_harmonization <- function(super_sample) {
     purrr::map(
       \(l) {
         l |>
-          purrr::reduce("+") |>
-          (\(x) Matrix::pack(methods::as(x / length(l), "dsyMatrix")))()
+          purrr::reduce(`+`) |>
+          (\(x) {
+            result <- as.matrix(x) / length(l)
+            Matrix::pack(methods::as(result, "dsyMatrix"))
+          })()
       }
     )
 
   overall_mean <- tangent_collection |>
-    do.call(what = c, args = _) |>
-    purrr::reduce("+") |>
-    (\(x) Matrix::pack(methods::as(x / super_sample$sample_size, "dsyMatrix")))()
+    purrr::reduce(c) |>
+    purrr::reduce(`+`) |>
+    (\(x) {
+      result <- as.matrix(x) / super_sample$sample_size
+      Matrix::pack(methods::as(result, "dsyMatrix"))
+    })()
 
   list(tangent_collection, batch_means) |>
     # Batch correction
