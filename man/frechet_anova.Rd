@@ -10,7 +10,11 @@ frechet_anova(super_sample)
 \item{super_sample}{An object of class CSuperSample (see riemtan package)}
 }
 \value{
-The p-value.
+A list with two elements:
+\describe{
+\item{statistic}{The Frechet ANOVA test statistic}
+\item{p_value}{The p-value from the chi-squared test}
+}
 }
 \description{
 Computes the Frechet ANOVA test statistic and its p-value for a given super-sample object.
