@@ -41,9 +41,14 @@ test_that("ANOVA stats work", {
     (\(x) {
       list(
         x |> is.null() |> expect_false(),
-        x |> inherits("numeric") |> expect_true(),
-        x |> (\(x) x >= 0)() |> expect_true(),
-        x |> (\(x) x <= 1)() |> expect_true()
+        x |> inherits("list") |> expect_true(),
+        x$statistic |> is.null() |> expect_false(),
+        x$statistic |> inherits("numeric") |> expect_true(),
+        x$statistic |> expect_gt(0),
+        x$p_value |> is.null() |> expect_false(),
+        x$p_value |> inherits("numeric") |> expect_true(),
+        x$p_value |> (\(p) p >= 0)() |> expect_true(),
+        x$p_value |> (\(p) p <= 1)() |> expect_true()
       )
     })()
   ss |>
