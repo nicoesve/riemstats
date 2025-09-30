@@ -39,7 +39,7 @@ frechet_anova <- function(super_sample) {
   group_sig_2s <- group_stats |> purrr::map_dbl(\(stats) stats$group_sig_2)
   group_vs <- group_stats |> purrr::map_dbl(\(stats) stats$group_v)
 
-  super_sample$gather
+  super_sample$gather()
   super_sample$full_sample$compute_dists()
   pooled_v <- mean(super_sample$full_sample$distances^2)
 
