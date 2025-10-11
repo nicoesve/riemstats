@@ -3,7 +3,8 @@
 #SBATCH --output=debugging/oracle_test_%j.out
 #SBATCH --error=debugging/oracle_test_%j.err
 #SBATCH --time=02:00:00
-#SBATCH --mem=32G
+#SBATCH --mem=64G
+#SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
 #SBATCH --partition=general
 #SBATCH --account=r00582
