@@ -29,9 +29,17 @@ frechet_anova <- function(super_sample) {
       sample$distances
     }) |>
     purrr::map(\(vec_of_dists) {
+      group_v <- mean(vec_of_dists^2)
+      group_sig_2_raw <- mean(vec_of_dists^4) - mean(vec_of_dists^2)^2
+
+      # Cap group_sig_2 to prevent numerical instability from near-zero variances
+      # Minimum variance is set to 1% of (mean squared distance)^2
+      epsilon <- 0.01
+      group_sig_2 <- max(group_sig_2_raw, epsilon * group_v^2)
+
       list(
-        group_sig_2 = mean(vec_of_dists^4) - mean(vec_of_dists^2)^2,
-        group_v = mean(vec_of_dists^2),
+        group_sig_2 = group_sig_2,
+        group_v = group_v,
         group_sample_size = length(vec_of_dists)
       )
     })
