@@ -79,9 +79,8 @@ for (i in seq_along(test_distances)) {
   # Compute distances
   sample_obj$compute_dists()
 
-  # Get computed distances (these are squared distances)
-  computed_dists_sq <- sample_obj$distances
-  computed_dists <- sqrt(computed_dists_sq)
+  # Get computed distances ($distances stores actual distances, not squared)
+  computed_dists <- sample_obj$distances
 
   # Calculate error
   mean_computed <- mean(computed_dists)
@@ -126,22 +125,22 @@ get_distances <- function(iter) {
   # Compute distances (this uses estimated Fréchet mean)
   sample_list$compute_dists()
 
-  # Return squared distances
+  # Return distances ($distances stores actual distances, not squared)
   sample_list$distances
 }
 
 all_distances_list <- mclapply(1:n_tests, get_distances, mc.cores = n_cores)
 all_distances <- unlist(all_distances_list)
 
-# Convert squared distances to distances
-all_distances_unsquared <- sqrt(all_distances)
+# Compute squared distances
+all_distances_squared <- all_distances^2
 
 # Summary statistics
 cat(sprintf("Number of samples: %d\n", length(all_distances)))
-cat(sprintf("Mean squared distance: %.4f\n", mean(all_distances)))
-cat(sprintf("SD squared distance: %.4f\n", sd(all_distances)))
-cat(sprintf("Mean distance: %.4f\n", mean(all_distances_unsquared)))
-cat(sprintf("SD distance: %.4f\n", sd(all_distances_unsquared)))
+cat(sprintf("Mean distance: %.4f\n", mean(all_distances)))
+cat(sprintf("SD distance: %.4f\n", sd(all_distances)))
+cat(sprintf("Mean squared distance: %.4f\n", mean(all_distances_squared)))
+cat(sprintf("SD squared distance: %.4f\n", sd(all_distances_squared)))
 
 # For Riemannian normal, E[d²] is related to variance
 # This is a consistency check, not a precise theoretical test
@@ -193,7 +192,7 @@ for (i in seq_along(test_distances)) {
   sample_obj <- CSample$new(samples, metric_obj = airm)
   set_frechet_mean(sample_obj, identity_mat)
   sample_obj$compute_dists()
-  computed_dists <- sqrt(sample_obj$distances)
+  computed_dists <- sample_obj$distances
 
   # Simple diagnostic plot
   hist(computed_dists,
