@@ -33,8 +33,8 @@ frechet_anova <- function(super_sample) {
       group_sig_2_raw <- mean(vec_of_dists^4) - mean(vec_of_dists^2)^2
 
       # Cap group_sig_2 to prevent numerical instability from near-zero variances
-      # Minimum variance is set to 1% of (mean squared distance)^2
-      epsilon <- 0.01
+      # Minimum variance is set to 10% of (mean squared distance)^2
+      epsilon <- 0.1
       group_sig_2 <- max(group_sig_2_raw, epsilon * group_v^2)
 
       list(

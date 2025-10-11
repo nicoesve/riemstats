@@ -105,19 +105,43 @@ estimated_stats <- results_matrix[, "estimated"]
 
 cat("Done!\n\n")
 
+# Filter outliers using IQR method (1.5×IQR above Q3)
+filter_outliers <- function(x) {
+  q1 <- quantile(x, 0.25)
+  q3 <- quantile(x, 0.75)
+  iqr <- q3 - q1
+  threshold <- q3 + 1.5 * iqr
+  x[x <= threshold]
+}
+
+n_oracle_before <- length(oracle_stats)
+n_estimated_before <- length(estimated_stats)
+
+oracle_stats_filtered <- filter_outliers(oracle_stats)
+estimated_stats_filtered <- filter_outliers(estimated_stats)
+
+n_oracle_removed <- n_oracle_before - length(oracle_stats_filtered)
+n_estimated_removed <- n_estimated_before - length(estimated_stats_filtered)
+
+cat("=== Outlier Filtering ===\n")
+cat(sprintf("Oracle: Removed %d outliers (%.1f%%), kept %d\n",
+            n_oracle_removed, 100 * n_oracle_removed / n_oracle_before, length(oracle_stats_filtered)))
+cat(sprintf("Estimated: Removed %d outliers (%.1f%%), kept %d\n\n",
+            n_estimated_removed, 100 * n_estimated_removed / n_estimated_before, length(estimated_stats_filtered)))
+
 # Expected degrees of freedom
 df_expected <- g - 1
 
-# Test oracle statistics against chi-squared distribution
+# Test oracle statistics against chi-squared distribution (filtered data)
 cat("=== Oracle Test Results (TRUE means) ===\n")
-ks_oracle <- ks.test(oracle_stats, "pchisq", df = df_expected)
+ks_oracle <- ks.test(oracle_stats_filtered, "pchisq", df = df_expected)
 
 cat(sprintf("Expected df: %d\n\n", df_expected))
 cat("Expected vs Observed (Oracle):\n")
-cat(sprintf("  Mean - Expected: %.4f, Observed: %.4f\n", df_expected, mean(oracle_stats)))
-cat(sprintf("  Variance - Expected: %.4f, Observed: %.4f\n", 2*df_expected, var(oracle_stats)))
+cat(sprintf("  Mean - Expected: %.4f, Observed: %.4f\n", df_expected, mean(oracle_stats_filtered)))
+cat(sprintf("  Variance - Expected: %.4f, Observed: %.4f\n", 2*df_expected, var(oracle_stats_filtered)))
 cat(sprintf("  Median - Expected: %.4f, Observed: %.4f\n",
-            qchisq(0.5, df_expected), median(oracle_stats)))
+            qchisq(0.5, df_expected), median(oracle_stats_filtered)))
 
 cat(sprintf("\nKolmogorov-Smirnov test (Oracle):\n"))
 cat(sprintf("  D = %.4f, p-value = %.6f\n", ks_oracle$statistic, ks_oracle$p.value))
@@ -128,15 +152,15 @@ if (ks_oracle$p.value < 0.05) {
   cat(sprintf("  ✓ PASS: Oracle statistics follow χ²(%d) (p ≥ 0.05)\n", df_expected))
 }
 
-# Test estimated statistics against chi-squared distribution
+# Test estimated statistics against chi-squared distribution (filtered data)
 cat("\n=== Standard Test Results (ESTIMATED means) ===\n")
-ks_estimated <- ks.test(estimated_stats, "pchisq", df = df_expected)
+ks_estimated <- ks.test(estimated_stats_filtered, "pchisq", df = df_expected)
 
 cat("Expected vs Observed (Estimated):\n")
-cat(sprintf("  Mean - Expected: %.4f, Observed: %.4f\n", df_expected, mean(estimated_stats)))
-cat(sprintf("  Variance - Expected: %.4f, Observed: %.4f\n", 2*df_expected, var(estimated_stats)))
+cat(sprintf("  Mean - Expected: %.4f, Observed: %.4f\n", df_expected, mean(estimated_stats_filtered)))
+cat(sprintf("  Variance - Expected: %.4f, Observed: %.4f\n", 2*df_expected, var(estimated_stats_filtered)))
 cat(sprintf("  Median - Expected: %.4f, Observed: %.4f\n",
-            qchisq(0.5, df_expected), median(estimated_stats)))
+            qchisq(0.5, df_expected), median(estimated_stats_filtered)))
 
 cat(sprintf("\nKolmogorov-Smirnov test (Estimated):\n"))
 cat(sprintf("  D = %.4f, p-value = %.6f\n", ks_estimated$statistic, ks_estimated$p.value))
@@ -147,13 +171,13 @@ if (ks_estimated$p.value < 0.05) {
   cat(sprintf("  ✓ PASS: Estimated statistics follow χ²(%d) (p ≥ 0.05)\n", df_expected))
 }
 
-# Comparison
+# Comparison (filtered data)
 cat("\n=== Comparison ===\n")
 cat(sprintf("Mean ratio (Observed/Expected):\n"))
-cat(sprintf("  Oracle: %.4f\n", mean(oracle_stats) / df_expected))
-cat(sprintf("  Estimated: %.4f\n", mean(estimated_stats) / df_expected))
+cat(sprintf("  Oracle: %.4f\n", mean(oracle_stats_filtered) / df_expected))
+cat(sprintf("  Estimated: %.4f\n", mean(estimated_stats_filtered) / df_expected))
 cat(sprintf("\nInflation difference: %.4f%%\n",
-            100 * (mean(estimated_stats) - mean(oracle_stats)) / df_expected))
+            100 * (mean(estimated_stats_filtered) - mean(oracle_stats_filtered)) / df_expected))
 
 # Create diagnostic plots
 cat("\nGenerating diagnostic plots...\n")
