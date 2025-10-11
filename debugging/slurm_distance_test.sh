@@ -3,8 +3,8 @@
 #SBATCH --output=debugging/distance_test_%j.out
 #SBATCH --error=debugging/distance_test_%j.err
 #SBATCH --time=01:00:00
-#SBATCH --mem=8G
-#SBATCH --cpus-per-task=1
+#SBATCH --mem=16G
+#SBATCH --cpus-per-task=16
 #SBATCH --partition=default
 
 # Distance Computation Verification Test for Issue 59

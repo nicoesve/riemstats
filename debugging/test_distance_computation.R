@@ -5,8 +5,13 @@
 
 library(riemtan)
 library(Matrix)
+library(parallel)
 
 cat("=== Distance Computation Verification Test ===\n\n")
+
+# Detect number of cores
+n_cores <- detectCores()
+cat(sprintf("Using %d CPU cores for parallel processing\n\n", n_cores))
 
 # Load AIRM metric
 data(airm)
@@ -106,11 +111,10 @@ scale <- sigma * diag(p) |> as("dpoMatrix") |> Matrix::pack()
 # Load log_cholesky metric for generating data
 data(log_cholesky)
 
-# Generate multiple samples and compute distances
-all_distances <- numeric(n_tests * n_samples)
-idx <- 1
+# Generate multiple samples and compute distances in parallel
+cat("Generating", n_tests, "samples in parallel...\n")
 
-for (i in 1:n_tests) {
+get_distances <- function(iter) {
   # Generate sample from Riemannian normal
   sample_list <- rspdnorm(n_samples, center, scale, log_cholesky)
   sample_list$compute_unvecs()
@@ -119,10 +123,12 @@ for (i in 1:n_tests) {
   # Compute distances (this uses estimated Fréchet mean)
   sample_list$compute_dists()
 
-  # Store squared distances
-  all_distances[idx:(idx + n_samples - 1)] <- sample_list$distances
-  idx <- idx + n_samples
+  # Return squared distances
+  sample_list$distances
 }
+
+all_distances_list <- mclapply(1:n_tests, get_distances, mc.cores = n_cores)
+all_distances <- unlist(all_distances_list)
 
 # Convert squared distances to distances
 all_distances_unsquared <- sqrt(all_distances)

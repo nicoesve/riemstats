@@ -3,8 +3,8 @@
 #SBATCH --output=debugging/oracle_test_%j.out
 #SBATCH --error=debugging/oracle_test_%j.err
 #SBATCH --time=02:00:00
-#SBATCH --mem=16G
-#SBATCH --cpus-per-task=1
+#SBATCH --mem=32G
+#SBATCH --cpus-per-task=16
 #SBATCH --partition=default
 
 # Oracle Test with True Means for Issue 59

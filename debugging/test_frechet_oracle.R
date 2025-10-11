@@ -6,9 +6,14 @@
 library(riemtan)
 library(riemstats)
 library(Matrix)
+library(parallel)
 
 cat("=== Fréchet ANOVA Oracle Test ===\n")
 cat("Testing with TRUE means to isolate formula vs estimation issues\n\n")
+
+# Detect number of cores
+n_cores <- detectCores()
+cat(sprintf("Using %d CPU cores for parallel processing\n\n", n_cores))
 
 # Load metric
 data(log_cholesky)
@@ -52,19 +57,11 @@ set_frechet_mean <- function(sample_obj, mean_value) {
   invisible(sample_obj)
 }
 
-# Storage for statistics
-oracle_stats <- numeric(n_replicates)
-estimated_stats <- numeric(n_replicates)
+# Run simulations in parallel
+cat("Running", n_replicates, "replicates in parallel...\n")
 
-# Progress tracking
-cat("Progress: ")
-progress_interval <- max(1, floor(n_replicates / 10))
-
-for (i in 1:n_replicates) {
-  if (i %% progress_interval == 0) {
-    cat(sprintf("%d%% ", round(100 * i / n_replicates)))
-  }
-
+# Define simulation function
+run_simulation <- function(iter_num) {
   # Generate H0 data: all groups from SAME distribution
   groups <- lapply(1:g, function(j) {
     sample <- rspdnorm(n_per_group, true_center, scale, log_cholesky)
@@ -86,13 +83,22 @@ for (i in 1:n_replicates) {
   # Create super sample with oracle means
   oracle_ss <- CSuperSample$new(oracle_groups)
   oracle_result <- frechet_anova(oracle_ss)
-  oracle_stats[i] <- oracle_result$statistic
 
   # Test 2: Standard test with ESTIMATED means (for comparison)
   estimated_ss <- CSuperSample$new(groups)
   estimated_result <- frechet_anova(estimated_ss)
-  estimated_stats[i] <- estimated_result$statistic
+
+  # Return both statistics
+  c(oracle = oracle_result$statistic, estimated = estimated_result$statistic)
 }
+
+# Run parallel simulations
+results <- mclapply(1:n_replicates, run_simulation, mc.cores = n_cores)
+
+# Extract results
+results_matrix <- do.call(rbind, results)
+oracle_stats <- results_matrix[, "oracle"]
+estimated_stats <- results_matrix[, "estimated"]
 
 cat("Done!\n\n")
 
