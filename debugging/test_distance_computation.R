@@ -17,6 +17,15 @@ n_samples <- 50  # number of samples per test
 n_tests <- 100  # number of test runs
 tolerance <- 0.05  # 5% relative error tolerance
 
+# Helper function to set Fréchet mean by accessing private field
+set_frechet_mean <- function(sample_obj, mean_value) {
+  # Access the private environment of the R6 object
+  private_env <- environment(sample_obj$initialize)$private
+  # Set the private f_mean field
+  private_env$f_mean <- mean_value
+  invisible(sample_obj)
+}
+
 # Helper function: Create SPD matrix at specific distance from identity using AIRM
 # Distance formula: d(I, A) = ||log(A)||_F
 create_spd_at_distance <- function(dim, target_distance) {
@@ -57,7 +66,7 @@ for (i in seq_along(test_distances)) {
   sample_obj <- CSample$new(samples, metric_obj = airm)
 
   # Set Fréchet mean to identity (oracle)
-  sample_obj$frechet_mean <- identity_mat
+  set_frechet_mean(sample_obj, identity_mat)
 
   # Compute distances
   sample_obj$compute_dists()
@@ -173,7 +182,7 @@ for (i in seq_along(test_distances)) {
 
   identity_mat <- diag(d) |> as("dpoMatrix") |> Matrix::pack()
   sample_obj <- CSample$new(samples, metric_obj = airm)
-  sample_obj$frechet_mean <- identity_mat
+  set_frechet_mean(sample_obj, identity_mat)
   sample_obj$compute_dists()
   computed_dists <- sqrt(sample_obj$distances)
 
