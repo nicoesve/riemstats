@@ -54,6 +54,7 @@ echo ""
 # Run the oracle test
 echo "Running oracle test (this may take a while with 1000 replicates)..."
 echo "=========================================="
+module load r/4.5.1
 Rscript debugging/test_frechet_oracle.R
 
 # Capture exit code

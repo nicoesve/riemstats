@@ -31,6 +31,7 @@ mkdir -p debugging
 
 # Print R version and library paths
 echo "R Configuration:"
+module load r/4.5.1
 Rscript --version
 echo ""
 echo "Library paths:"
