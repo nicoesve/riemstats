@@ -43,6 +43,15 @@ scale <- create_dispersion_matrix(d, sigma)
 
 cat("Generating data under H0 (all groups from same distribution)...\n")
 
+# Helper function to set Fréchet mean by accessing private field
+set_frechet_mean <- function(sample_obj, mean_value) {
+  # Access the private environment of the R6 object
+  private_env <- environment(sample_obj$initialize)$private
+  # Set the private f_mean field
+  private_env$f_mean <- mean_value
+  invisible(sample_obj)
+}
+
 # Storage for statistics
 oracle_stats <- numeric(n_replicates)
 estimated_stats <- numeric(n_replicates)
@@ -69,8 +78,8 @@ for (i in 1:n_replicates) {
   oracle_groups <- lapply(groups, function(sample) {
     # Clone the sample
     oracle_sample <- sample$clone()
-    # Override the Fréchet mean with the TRUE center
-    oracle_sample$frechet_mean <- true_center
+    # Override the Fréchet mean with the TRUE center (via private field access)
+    set_frechet_mean(oracle_sample, true_center)
     oracle_sample
   })
 
