@@ -11,6 +11,9 @@ library(parallel)
 cat("=== Fréchet ANOVA Oracle Test ===\n")
 cat("Testing with TRUE means to isolate formula vs estimation issues\n\n")
 
+# Set Cairo for headless plotting (no X11 required)
+options(bitmapType = 'cairo')
+
 # Detect number of cores
 n_cores <- detectCores()
 cat(sprintf("Using %d CPU cores for parallel processing\n\n", n_cores))
