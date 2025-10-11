@@ -3,10 +3,12 @@
 #SBATCH --output=debugging/distance_test_%j.out
 #SBATCH --error=debugging/distance_test_%j.err
 #SBATCH --time=01:00:00
-#SBATCH --mem=16G
+#SBATCH --mem=64G
+#SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
 #SBATCH --partition=general
 #SBATCH --account=r00582
+
 
 # Distance Computation Verification Test for Issue 59
 # Tests whether riemtan's compute_dists() accurately computes distances
