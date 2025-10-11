@@ -5,7 +5,8 @@
 #SBATCH --time=02:00:00
 #SBATCH --mem=32G
 #SBATCH --cpus-per-task=16
-#SBATCH --partition=default
+#SBATCH --partition=general
+#SBATCH --account=r00582
 
 # Oracle Test with True Means for Issue 59
 # Tests frechet_anova formula using TRUE means to isolate riemstats vs riemtan issues
