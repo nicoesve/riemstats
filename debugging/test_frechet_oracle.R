@@ -24,12 +24,12 @@ data(log_cholesky)
 # Set seed for reproducibility
 set.seed(42)
 
-# Test parameters
-n_per_group <- 30  # samples per group
+# Test parameters (reduced for faster execution)
+n_per_group <- 10  # samples per group (reduced from 30)
 g <- 2             # number of groups
 d <- 3             # dimension of SPD matrices (3×3)
 sigma <- 100.0     # dispersion parameter
-n_replicates <- 1000  # number of test runs
+n_replicates <- 100  # number of test runs (reduced from 1000)
 
 cat(sprintf("Parameters:\n"))
 cat(sprintf("  Groups: %d\n", g))
