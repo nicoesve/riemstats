@@ -32,6 +32,7 @@ mkdir -p debugging
 
 # Print R version and library paths
 echo "R Configuration:"
+module load r/4.5.1
 Rscript --version
 echo ""
 echo "Library paths:"
@@ -55,7 +56,6 @@ echo ""
 # Run the oracle test
 echo "Running oracle test (this may take a while with 1000 replicates)..."
 echo "=========================================="
-module load r/4.5.1
 Rscript debugging/test_frechet_oracle.R
 
 # Capture exit code
