@@ -19,7 +19,7 @@ n_cores <- detectCores()
 cat(sprintf("Using %d CPU cores for parallel processing\n\n", n_cores))
 
 # Load metric
-data(log_cholesky)
+data(euclidean)
 
 # Set seed for reproducibility
 set.seed(42)
@@ -67,7 +67,7 @@ cat("Running", n_replicates, "replicates in parallel...\n")
 run_simulation <- function(iter_num) {
   # Generate H0 data: all groups from SAME distribution
   groups <- lapply(1:g, function(j) {
-    sample <- rspdnorm(n_per_group, true_center, scale, log_cholesky)
+    sample <- rspdnorm(n_per_group, true_center, scale, euclidean)
     sample$compute_unvecs()
     sample$compute_conns()
     sample
