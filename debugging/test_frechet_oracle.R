@@ -65,40 +65,66 @@ cat("Running", n_replicates, "replicates in parallel...\n")
 
 # Define simulation function
 run_simulation <- function(iter_num) {
-  # Generate H0 data: all groups from SAME distribution
-  groups <- lapply(1:g, function(j) {
-    sample <- rspdnorm(n_per_group, true_center, scale, euclidean)
-    sample$compute_unvecs()
-    sample$compute_conns()
-    sample
+  tryCatch({
+    # Generate H0 data: all groups from SAME distribution
+    groups <- lapply(1:g, function(j) {
+      sample <- rspdnorm(n_per_group, true_center, scale, euclidean)
+      sample$compute_unvecs()
+      sample$compute_conns()
+      sample
+    })
+
+    # Test 1: Oracle test with TRUE mean
+    # Manually set each sample's Fréchet mean to the true center
+    oracle_groups <- lapply(groups, function(sample) {
+      # Clone the sample
+      oracle_sample <- sample$clone()
+      # Override the Fréchet mean with the TRUE center (via private field access)
+      set_frechet_mean(oracle_sample, true_center)
+      oracle_sample
+    })
+
+    # Create super sample with oracle means
+    oracle_ss <- CSuperSample$new(oracle_groups)
+    oracle_result <- frechet_anova(oracle_ss)
+
+    # Test 2: Standard test with ESTIMATED means (for comparison)
+    estimated_ss <- CSuperSample$new(groups)
+    estimated_result <- frechet_anova(estimated_ss)
+
+    # Return both statistics
+    c(oracle = oracle_result$statistic, estimated = estimated_result$statistic)
+  }, error = function(e) {
+    # Return a try-error object that will be caught in post-processing
+    structure(list(message = e$message), class = "try-error")
   })
-
-  # Test 1: Oracle test with TRUE mean
-  # Manually set each sample's Fréchet mean to the true center
-  oracle_groups <- lapply(groups, function(sample) {
-    # Clone the sample
-    oracle_sample <- sample$clone()
-    # Override the Fréchet mean with the TRUE center (via private field access)
-    set_frechet_mean(oracle_sample, true_center)
-    oracle_sample
-  })
-
-  # Create super sample with oracle means
-  oracle_ss <- CSuperSample$new(oracle_groups)
-  oracle_result <- frechet_anova(oracle_ss)
-
-  # Test 2: Standard test with ESTIMATED means (for comparison)
-  estimated_ss <- CSuperSample$new(groups)
-  estimated_result <- frechet_anova(estimated_ss)
-
-  # Return both statistics
-  c(oracle = oracle_result$statistic, estimated = estimated_result$statistic)
 }
 
 # Run parallel simulations
 results <- mclapply(1:n_replicates, run_simulation, mc.cores = n_cores)
 
-# Extract results
+# Check for errors and filter them out
+is_error <- sapply(results, function(x) inherits(x, "try-error") || is.null(x))
+n_errors <- sum(is_error)
+n_success <- sum(!is_error)
+
+if (n_errors > 0) {
+  cat(sprintf("Warning: %d out of %d simulations failed (%.1f%%)\n",
+              n_errors, n_replicates, 100 * n_errors / n_replicates))
+  cat("First error message:\n")
+  first_error_idx <- which(is_error)[1]
+  print(results[[first_error_idx]])
+  cat("\n")
+  results <- results[!is_error]
+}
+
+if (n_success == 0) {
+  stop("All simulations failed. Cannot proceed with analysis.")
+}
+
+cat(sprintf("Successfully completed %d simulations\n", n_success))
+
+# Extract results from successful runs
 results_matrix <- do.call(rbind, results)
 oracle_stats <- results_matrix[, "oracle"]
 estimated_stats <- results_matrix[, "estimated"]
