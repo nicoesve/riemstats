@@ -28,7 +28,7 @@ set.seed(42)
 n_per_group <- 10  # samples per group (reduced from 30)
 g <- 2             # number of groups
 d <- 3             # dimension of SPD matrices (3×3)
-sigma <- 100.0     # dispersion parameter
+sigma <- 0.1       # dispersion parameter
 n_replicates <- 100  # number of test runs (reduced from 1000)
 
 cat(sprintf("Parameters:\n"))
