@@ -1,11 +1,11 @@
 #!/bin/bash
-#SBATCH --job-name=oracle_test
-#SBATCH --output=debugging/oracle_test_%j.out
-#SBATCH --error=debugging/oracle_test_%j.err
-#SBATCH --time=02:00:00
+#SBATCH --job-name=oracle_test_two
+#SBATCH --output=debugging/oracle_test_two_%j.out
+#SBATCH --error=debugging/oracle_test_two_%j.err
+#SBATCH --time=06:00:00
 #SBATCH --mem=64G
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=16
+#SBATCH --cpus-per-task=64
 #SBATCH --partition=general
 #SBATCH --account=r00582
 
