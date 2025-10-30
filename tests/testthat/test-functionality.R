@@ -52,7 +52,7 @@ test_that("ANOVA stats work", {
       )
     })()
   ss |>
-    riem_anova() |>
+    riem_anova(nperm = 10) |>  # Use small number for faster testing
     (\(x) {
       list(
         x |> is.null() |> expect_false(),
@@ -207,40 +207,34 @@ test_that("ts2corr functionality", {
   expect_equal(dim(larger_corr), c(6, 6))
 })
 
-test_that("one_bootstrap functionality", {
+test_that("one_permutation functionality", {
   library(riemtan)
   data("airm")
-  
+
   # Create test supersample
   sam1 <- test_pd_mats |> CSample$new(metric_obj = airm)
   sam2 <- test_pd_mats |>
     purrr::map(\(x) (1.1 * x) |> Matrix::unpack() |> as("dpoMatrix") |> Matrix::pack()) |>
     CSample$new(metric_obj = airm)
   ss <- list(sam1, sam2) |> CSuperSample$new()
-  
-  # Create test parameters (these would normally come from MLE estimation)
-  ss$compute_fmean()  # Compute Fréchet mean first
-  hat_sigma <- ss$frechet_mean  # Use Fréchet mean as the mean parameter
-  hat_gamma <- diag(ss$mfd_dim) |> format_matr()
-  geom <- ss$riem_metric
-  
+
   # Define a simple statistic function
   stat_fun <- function(x) x |> log_wilks_lambda()
-  
-  # Test one_bootstrap execution
-  bootstrap_result <- one_bootstrap(ss, hat_sigma, hat_gamma, geom, stat_fun)
-  
+
+  # Test one_permutation execution
+  permutation_result <- one_permutation(ss, stat_fun)
+
   # Check that result is numeric
-  expect_true(is.numeric(bootstrap_result))
-  expect_length(bootstrap_result, 1)
-  
+  expect_true(is.numeric(permutation_result))
+  expect_length(permutation_result, 1)
+
   # Test with different statistic function
   stat_fun2 <- function(x) x |> pillais_trace()
-  bootstrap_result2 <- one_bootstrap(ss, hat_sigma, hat_gamma, geom, stat_fun2)
-  
-  expect_true(is.numeric(bootstrap_result2))
-  expect_length(bootstrap_result2, 1)
-  expect_true(bootstrap_result2 >= 0)  # Pillai's trace should be non-negative
+  permutation_result2 <- one_permutation(ss, stat_fun2)
+
+  expect_true(is.numeric(permutation_result2))
+  expect_length(permutation_result2, 1)
+  expect_true(permutation_result2 >= 0)  # Pillai's trace should be non-negative
 })
 
 test_that("harmonization functions preserve statistical properties", {

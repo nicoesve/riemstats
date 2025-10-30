@@ -102,18 +102,24 @@ This section demonstrates a complete analysis pipeline for multi-site connectome
 ```{r load-package}
 library(riemstats)
 library(riemtan) # Required for CSuperSample and CSample classes
+data("airm")  # Load the AIRM metric
 
-# Example: Load multi-site connectome data
-# Data should be organized as CSuperSample objects from the riemtan package
-# Each site/batch is a CSample containing SPD matrices
+# Create example SPD matrices for demonstration
+test_pd_mats <- list(
+  Matrix::Matrix(c(2.0, 0.5, 0.5, 3.0), nrow = 2) |>
+    Matrix::nearPD() |> _$mat |> Matrix::pack(),
+  Matrix::Matrix(c(1.5, 0.3, 0.3, 2.5), nrow = 2) |>
+    Matrix::nearPD() |> _$mat |> Matrix::pack()
+)
 
-# Example structure (placeholder for actual data loading):
-# site1_matrices <- list(matrix1, matrix2, ...)  # List of SPD matrices for site 1
-# site2_matrices <- list(matrix3, matrix4, ...)  # List of SPD matrices for site 2
-#
-# sample1 <- riemtan::CSample$new(matrices = site1_matrices)
-# sample2 <- riemtan::CSample$new(matrices = site2_matrices)
-# super_sample <- riemtan::CSuperSample$new(list(sample1, sample2))
+# Create samples for two sites/groups
+sample1 <- test_pd_mats |>
+  purrr::map(\(x) (2 * x) |> Matrix::unpack() |> as("dpoMatrix") |> Matrix::pack()) |>
+  CSample$new(metric_obj = airm)
+sample2 <- test_pd_mats |> CSample$new(metric_obj = airm)
+
+# Combine into a supersample for analysis
+super_sample <- list(sample1, sample2) |> CSuperSample$new()
 ```
 
 ## Data Harmonization
@@ -139,19 +145,19 @@ After harmonization, test for group differences using methods that respect the S
 # Returns p-value directly
 frechet_p_value <- frechet_anova(harmonized_super_sample)
 
-# Riemannian ANOVA with bootstrap inference
+# Riemannian ANOVA with permutation test inference
 # Can use log_wilks_lambda (default) or pillais_trace as stat_fun
 riemann_p_value_wilks <- riem_anova(
   ss = harmonized_super_sample,
   stat_fun = log_wilks_lambda,
-  den = 1000 # Number of bootstrap samples
+  nperm = 100 # Number of permutations (use 1000+ in practice)
 )
 
 # Using Pillai's trace
 riemann_p_value_pillai <- riem_anova(
   ss = harmonized_super_sample,
   stat_fun = pillais_trace,
-  den = 1000
+  nperm = 100 # Number of permutations (use 1000+ in practice)
 )
 
 # Display results
