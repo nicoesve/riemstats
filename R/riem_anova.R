@@ -145,61 +145,94 @@ pillais_trace <- function(super_sample) {
   })
 }
 
-#' Bootstrap Statistic for a Super Sample
+#' Permutation Statistic for a Super Sample
 #'
-#' For each subsample in a given super sample,
-#' draws a normal subsample of the same size
-#' using the provided parameters, collects them into a new super sample,
-#' and computes a specified statistic on the resulting super sample.
+#' Randomly shuffles all observations across groups while preserving
+#' group sample sizes, creating a new super sample under the null hypothesis
+#' of no group differences, and computes a specified statistic on the
+#' resulting permuted super sample.
 #'
 #' @param x An object of class \code{CSuperSample},
 #' representing the original super sample.
-#' @param hat_sigma The mean parameter for the normal distribution
-#' used in resampling.
-#' @param hat_gamma The covariance parameter for the normal distribution
-#' used in resampling.
-#' @param geom The geometry parameter to be passed to \code{riemtan::rspdnorm}.
 #' @param stat_fun A function to compute a statistic
 #' on the resulting \code{CSuperSample} object.
 #'
 #' @return The value returned by \code{stat_fun} when applied
-#' to the bootstrapped super sample.
+#' to the permuted super sample.
 #'
 #' @details
-#' This function performs a parametric bootstrap by resampling
-#' each subsample in \code{x} according to the specified parameters,
-#' then aggregates the resampled data into a new
-#' \code{CSuperSample} and computes the desired statistic.
+#' This function performs a permutation test by:
+#' 1. Extracting all data points from all groups
+#' 2. Randomly shuffling the data
+#' 3. Reassigning data to groups with the same sample sizes as the original
+#' 4. Computing the test statistic on the permuted data
+#'
+#' This approach tests the null hypothesis that group labels are exchangeable,
+#' which is natural for testing whether sub-populations differ.
 #' @export
-one_bootstrap <- function(x, hat_sigma, hat_gamma, geom, stat_fun) {
-  x$list_of_samples |>
-    purrr::map(
-      \(s) riemtan::rspdnorm(s$sample_size, hat_sigma, hat_gamma, geom)
-    ) |>
+one_permutation <- function(x, stat_fun) {
+  # Extract all connectomes (raw data) from all groups
+  # Connectomes are the primary data format and don't require centering
+  all_data <- x$list_of_samples |>
+    purrr::map(\(s) s$connectomes) |>
+    purrr::reduce(c)
+
+  # Get original sample sizes
+  sample_sizes <- x$list_of_samples |>
+    purrr::map_int(\(s) s$sample_size)
+
+  # Randomly permute all data
+  shuffled_data <- sample(all_data)
+
+  # Split shuffled data back into groups (preserving sample sizes)
+  start_idx <- 1
+  permuted_samples <- sample_sizes |>
+    purrr::map(\(n) {
+      end_idx <- start_idx + n - 1
+      group_data <- shuffled_data[start_idx:end_idx]
+      start_idx <<- end_idx + 1
+
+      # Create new CSample with permuted connectomes
+      riemtan::CSample$new(conns = group_data, metric_obj = x$riem_metric)
+    })
+
+  # Create new CSuperSample and compute statistic
+  permuted_samples |>
     riemtan::CSuperSample$new() |>
     stat_fun()
 }
 
-#' Compute p-values using bootstrap
+#' Compute p-values using permutation test
 #'
-#' Computes a bootstrap-based p-value and for a given super sample.
-#' The statistic used for the bootstrap can be specified
+#' Computes a permutation-based p-value for a given super sample.
+#' The statistic used for the permutation test can be specified
 #' via the `stat_fun` argument.
 #'
 #' @param ss An object of class `CSuperSample`.
 #' @param stat_fun A function to compute a statistic
 #' on the `CSuperSample` object (default: `log_wilks_lambda`).
-#' @param den The number of bootstrap samples to generate
-#' for estimating the p-value.
+#' @param nperm The number of permutations to generate
+#' for estimating the p-value (default: 1000).
 #'
-#' @return numeric A bootstrap p-value.
+#' @return numeric A permutation-based p-value.
 #'
 #' @details
 #' The function computes the statistic on the observed data
-#' and compares it to the distribution
-#' of statistics computed on bootstrapped samples.
+#' and compares it to the distribution of statistics computed
+#' on permuted samples. Under the null hypothesis that group labels
+#' are exchangeable, this provides an exact test (subject to Monte Carlo error).
+#'
+#' The permutation test:
+#' 1. Computes the test statistic on the observed data
+#' 2. Randomly shuffles group assignments while preserving sample sizes
+#' 3. Recomputes the test statistic on each permuted dataset
+#' 4. Calculates the p-value as the proportion of permuted statistics
+#'    that exceed the observed statistic
+#'
+#' This approach is computationally efficient and does not require
+#' parameter estimation or synthetic data generation.
 #' @export
-riem_anova <- function(ss, stat_fun = log_wilks_lambda, den = 5) {
+riem_anova <- function(ss, stat_fun = log_wilks_lambda, nperm = 1000) {
   if (!inherits(ss, "CSuperSample")) {
     stop("Argument 'ss' must be an object of class 'CSuperSample'.")
   }
@@ -209,31 +242,13 @@ riem_anova <- function(ss, stat_fun = log_wilks_lambda, den = 5) {
     stop("CSuperSample must contain at least 2 groups for ANOVA analysis")
   }
 
-  ss$gather()
-  ss$compute_fmean()
-
-  # estimate the parameters (the dispersion is estimated by pooling)
-  hat_sigma <- ss$frechet_mean
-  # hat_gamma <- ss$list_of_samples |>
-  #   purrr::walk(\(s) s$compute_sample_cov()) |>
-  #   purrr::map(\(s) (s$sample_size - 1) * s$sample_cov) |>
-  #   print() |>
-  #   Reduce(`+`, x = _) |>
-  #   print() |>
-  #   (\(x) x / (ss$sample_size - 1))() |>
-  #   methods::as("dpoMatrix") |>
-  #   Matrix::pack()
-  hat_gamma <- diag(ss$mfd_dim) |>
-    methods::as("dpoMatrix") |>
-    Matrix::pack()
-
-  # reference statistic value
+  # Compute observed test statistic
   stat_val <- stat_fun(ss)
 
-  # bootstraping
-  1:den |>
+  # Generate permutation distribution
+  1:nperm |>
     purrr::map_dbl(
-      \(m) one_bootstrap(ss, hat_sigma, hat_gamma, ss$riem_metric, stat_fun)
+      \(m) one_permutation(ss, stat_fun)
     ) |>
     (\(v) stat_val > v)() |>
     mean()
