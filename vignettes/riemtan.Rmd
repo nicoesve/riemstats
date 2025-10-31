@@ -140,22 +140,22 @@ aligned_super_sample <- rigid_harmonization(super_sample)
 
 After harmonization, test for group differences using methods that respect the SPD geometry:
 
-```{r anova-analysis}
+```{r anova-analysis, eval=FALSE}
 # Fréchet ANOVA for overall group differences
 # Returns p-value directly
-frechet_p_value <- frechet_anova(harmonized_super_sample)
+frechet_p_value <- frechet_anova(super_sample)
 
 # Riemannian ANOVA with permutation test inference
 # Can use log_wilks_lambda (default) or pillais_trace as stat_fun
 riemann_p_value_wilks <- riem_anova(
-  ss = harmonized_super_sample,
+  ss = super_sample,
   stat_fun = log_wilks_lambda,
   nperm = 100 # Number of permutations (use 1000+ in practice)
 )
 
 # Using Pillai's trace
 riemann_p_value_pillai <- riem_anova(
-  ss = harmonized_super_sample,
+  ss = super_sample,
   stat_fun = pillais_trace,
   nperm = 100 # Number of permutations (use 1000+ in practice)
 )
