@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">riemstats</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -53,20 +53,20 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="riemstats-riemannian-anova-statistcs">riemstats: Riemannian ANOVA Statistcs<a class="anchor" aria-label="anchor" href="#riemstats-riemannian-anova-statistcs"></a>
+<div class="page-header"><h1 id="riemstats-riemannian-anova-statistics">riemstats: Riemannian ANOVA Statistics<a class="anchor" aria-label="anchor" href="#riemstats-riemannian-anova-statistics"></a>
 </h1></div>
 <!-- badges: start -->
-<!-- [![R-CMD-check](https://github.com/yourusername/riemtan/workflows/R-CMD-check/badge.svg)](https://github.com/nicoesve/riemtan/actions) -->
+<!-- [![R-CMD-check](https://github.com/yourusername/riemstats/workflows/R-CMD-check/badge.svg)](https://github.com/nicoesve/riemstats/actions) -->
 <!-- badges: end -->
 <div class="section level2">
 <h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
-<p><code>riemstats</code> implements various Riemannian ANOVA statistics</p>
+<p><code>riemstats</code> provides statistical tools for performing ANOVA on Riemannian manifolds. The package implements permutation-based testing procedures for comparing populations of symmetric positive definite (SPD) matrices and other manifold-valued data.</p>
 </div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>You can install the released version of riemtan with:</p>
+<p>You can install the development version of riemstats with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("devtools")</span></span>
 <span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"nicoesve/riemstats"</span><span class="op">)</span></span></code></pre></div>
@@ -74,10 +74,32 @@
 <div class="section level2">
 <h2 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
 </h2>
+<p>Here’s a basic example using the permutation test for Riemannian ANOVA:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://nicoesve.github.io/riemstats/">riemstats</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://nicoesve.github.io/riemtan/" class="external-link">riemtan</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Create sample data on SPD manifold</span></span>
+<span><span class="va">data</span> <span class="op">&lt;-</span> <span class="va"><a href="https://nicoesve.github.io/riemtan/reference/CSample.html" class="external-link">CSample</a></span><span class="op">$</span><span class="fu">new</span><span class="op">(</span>metric <span class="op">=</span> <span class="st">"AIRM"</span><span class="op">)</span></span>
+<span><span class="co"># ... add your SPD matrices and group labels ...</span></span>
+<span></span>
+<span><span class="co"># Perform Riemannian ANOVA with permutation test</span></span>
+<span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/riem_anova.html">riem_anova</a></span><span class="op">(</span><span class="va">data</span>, nperm <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">result</span><span class="op">$</span><span class="va">pvalue</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="features">Features<a class="anchor" aria-label="anchor" href="#features"></a>
 </h2>
+<ul>
+<li>
+<strong>Permutation-based ANOVA</strong>: Exact inference for comparing groups on Riemannian manifolds</li>
+<li>
+<strong>Multiple test statistics</strong>: Log-Wilks lambda, Pillai’s trace</li>
+<li>
+<strong>Harmonization methods</strong>: ComBat and rigid alignment for batch effect correction</li>
+<li>
+<strong>Normalization utilities</strong>: Tools for preprocessing manifold-valued data</li>
+</ul>
 </div>
 <div class="section level2">
 <h2 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
@@ -86,7 +108,7 @@
 <ul>
 <li><a href="https://nicoesve.github.io/riemstats/">Package website</a></li>
 <li><a href="https://nicoesve.github.io/riemstats/reference/">Function reference</a></li>
-<li><a href="https://nicoesve.github.io/riemstats/articles/riemstats.html">Introduction to riemtan</a></li>
+<li><a href="https://nicoesve.github.io/riemstats/articles/">Vignettes</a></li>
 </ul>
 </div>
 <div class="section level2">

@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">riemstats</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -36,6 +36,42 @@
       <small>Source: <a href="https://github.com/nicoesve/riemstats/blob/HEAD/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.2.0" id="riemstats-020">riemstats 0.2.0<a class="anchor" aria-label="anchor" href="#riemstats-020"></a></h2>
+<div class="section level3">
+<h3 id="major-changes-0-2-0">Major Changes<a class="anchor" aria-label="anchor" href="#major-changes-0-2-0"></a></h3>
+<div class="section level4">
+<h4 id="permutation-test-implementation-0-2-0">Permutation Test Implementation<a class="anchor" aria-label="anchor" href="#permutation-test-implementation-0-2-0"></a></h4>
+<ul><li>
+<strong>BREAKING CHANGE</strong>: Replaced parametric bootstrap with permutation test in <code><a href="../reference/riem_anova.html">riem_anova()</a></code>
+<ul><li>Function parameter renamed: <code>den</code> → <code>nperm</code> (default changed from 5 to 1000)</li>
+<li>Old function <code>one_bootstrap()</code> removed and replaced with <code><a href="../reference/one_permutation.html">one_permutation()</a></code>
+</li>
+<li>Users must update existing code to use the new parameter name</li>
+</ul></li>
+</ul><p><strong>Benefits of permutation test approach:</strong> - Faster computation (no synthetic data generation required) - More stable p-values (no parameter estimation variability) - Exact test under null hypothesis (when group labels are exchangeable) - Simpler implementation (direct shuffling of observations)</p>
+<p><strong>Motivation:</strong> - Asymptotic tests showed inflation issues - Bootstrap was computationally expensive and under-conservative - Permutation test is more natural for comparing sub-populations</p>
+<p>See GitHub issue <a href="https://github.com/nicoesve/riemstats/issues/61" class="external-link">#61</a> and PR <a href="https://github.com/nicoesve/riemstats/issues/62" class="external-link">#62</a> for detailed discussion and implementation.</p>
+</div>
+</div>
+<div class="section level3">
+<h3 id="documentation-0-2-0">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-2-0"></a></h3>
+<ul><li>Updated <code><a href="../reference/riem_anova.html">riem_anova()</a></code> documentation with permutation test description</li>
+<li>Added <code><a href="../reference/one_permutation.html">one_permutation()</a></code> function documentation</li>
+<li>Updated vignette with working permutation test examples</li>
+<li>Reduced vignette permutation count to 100 for faster builds</li>
+</ul></div>
+<div class="section level3">
+<h3 id="testing-0-2-0">Testing<a class="anchor" aria-label="anchor" href="#testing-0-2-0"></a></h3>
+<ul><li>Updated test suite for permutation approach</li>
+<li>All 126 tests passing</li>
+<li>Fixed CSample constructor issues in tests</li>
+</ul></div>
+<div class="section level3">
+<h3 id="note-on-validation-0-2-0">Note on Validation<a class="anchor" aria-label="anchor" href="#note-on-validation-0-2-0"></a></h3>
+<p>This release is pending comprehensive validation through simulation studies (EXP-MP-062). Initial testing shows correct behavior, but full Type I error and power analysis is ongoing.</p>
+</div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.0" id="riemstats-010">riemstats 0.1.0<a class="anchor" aria-label="anchor" href="#riemstats-010"></a></h2>
 <div class="section level3">

@@ -6,3 +6,7 @@
 ^\.here$
 ^Dockerfile$
 ^_pkgdown.yml
+^\.claude$
+^CLAUDE\.md$
+^debugging/
+^vignette_anova_fix\.txt$
