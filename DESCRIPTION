@@ -1,5 +1,5 @@
 Package: riemstats
-Title: Riemannian ANOVA statistics
+Title: Riemannian ANOVA Statistics
 Version: 0.2.0
 Authors@R: c(
     person(
@@ -14,7 +14,19 @@ Authors@R: c(
         family = "Harezlak",
         role = "ths"
     ))
-Description: Implements various Riemannian ANOVA statistics.
+Description: Provides statistical methods for analyzing samples of symmetric
+    positive definite (SPD) matrices, particularly functional connectivity
+    matrices from neuroimaging data. Implements Fréchet ANOVA
+    (Dubey and Müller (2019) <doi:10.1093/biomet/asz052>) for testing
+    differences between groups in metric spaces, and Riemannian ANOVA methods
+    that leverage tangent space geometry with classic multivariate test
+    statistics including Wilks' Lambda and Pillai's trace. Also includes
+    harmonization techniques for removing batch effects in multi-site studies:
+    ComBat-based harmonization (Honnorat et al. (2024)
+    <doi:10.1016/j.media.2023.103043>) and rigid harmonization
+    (Simeon et al. (2022) <doi:10.3389/fninf.2022.769274>). Builds on
+    'riemtan' package infrastructure for efficient computation with multiple
+    Riemannian metrics.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
