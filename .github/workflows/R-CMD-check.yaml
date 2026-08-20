@@ -1,0 +1,76 @@
+# Workflow derived from https://github.com/r-lib/actions/tree/v2/examples
+# Need help debugging build failures? Start at https://github.com/r-lib/actions#where-to-find-help
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+name: R-CMD-check.yaml
+
+permissions: read-all
+
+jobs:
+  R-CMD-check:
+    runs-on: ${{ matrix.config.os }}
+
+    name: ${{ matrix.config.os }} (${{ matrix.config.r }})
+
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - {os: macos-latest,   r: 'release'}
+          - {os: windows-latest, r: 'release'}
+          - {os: ubuntu-latest,  r: 'devel', http-user-agent: 'release'}
+          - {os: ubuntu-latest,  r: 'release'}
+          # oldrel-1 is deliberately absent here, unlike the other three
+          # workflows. Bioconductor pins each of its releases to one R version,
+          # so an oldrel runner must resolve sva from an ARCHIVED BioC release
+          # -- a moving target that breaks whenever Bioconductor cuts a new
+          # version, and a source of red CI that says nothing about this
+          # package. The four remaining cells cover every platform. Restore this
+          # cell if and when sva moves to Suggests (P3).
+
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
+      # riemstats pulls rgl transitively (CovTools -> shapes -> rgl). On a
+      # headless runner rgl.init cannot open an X11 display, which R CMD check
+      # reports as a significant install warning -- and check-r-package defaults
+      # to error-on: "warning". On macos-latest it is worse: rgl.so cannot
+      # dlopen libGLU.1.dylib since macOS Tahoe dropped OpenGL, and the package
+      # fails to install at all. rgl's own null-device switch avoids both.
+      RGL_USE_NULL: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: ${{ matrix.config.r }}
+          http-user-agent: ${{ matrix.config.http-user-agent }}
+          use-public-rspm: true
+
+      # riemstats declares `sva` in Imports, and sva is a BIOCONDUCTOR package,
+      # not a CRAN one. `use-public-rspm: true` points setup-r at Posit's CRAN
+      # mirror, which does not carry Bioconductor, so a dependency resolution
+      # that only consults it cannot find sva and the job dies before a single
+      # test runs. Naming it explicitly as `bioc::sva` forces pak to resolve it
+      # from the Bioconductor repositories.
+      #
+      # This is riemstats-dev's Risk-3 blocker showing up for real: on
+      # riemstats-dev 0.3.0 sva sits in Suggests, so its CI never had to solve
+      # this. Here it is a hard Import. Moving it to Suggests is P3's call, not
+      # this workflow's -- the workflow's job is to make the existing package
+      # testable, not to redesign its dependency graph.
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::rcmdcheck, bioc::sva
+          needs: check
+
+      - uses: r-lib/actions/check-r-package@v2
+        with:
+          upload-snapshots: true
+          build_args: 'c("--no-manual","--compact-vignettes=gs+qpdf")'

@@ -1,0 +1,94 @@
+# Workflow derived from https://github.com/r-lib/actions/tree/v2/examples
+# Need help debugging build failures? Start at https://github.com/r-lib/actions#where-to-find-help
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+name: test-coverage.yaml
+
+permissions: read-all
+
+jobs:
+  test-coverage:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      # See R-CMD-check.yaml: rgl arrives transitively via CovTools -> shapes
+      # and cannot initialise on a headless runner.
+      RGL_USE_NULL: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      # See R-CMD-check.yaml: sva is a Bioconductor package in riemstats' Imports
+      # and must be named explicitly so pak resolves it from Bioconductor.
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::covr, any::xml2, bioc::sva
+          needs: coverage
+
+      - name: Test coverage
+        run: |
+          cov <- covr::package_coverage(
+            quiet = FALSE,
+            clean = FALSE,
+            install_path = file.path(normalizePath(Sys.getenv("RUNNER_TEMP"), winslash = "/"), "package")
+          )
+          covr::to_cobertura(cov)
+
+          print(cov)
+          pct <- covr::percent_coverage(cov)
+          cat(sprintf("\nTOTAL COVERAGE: %.2f%%\n", pct))
+
+          # Put the number on the run summary page so it is visible without
+          # opening the log.
+          summary_file <- Sys.getenv("GITHUB_STEP_SUMMARY")
+          if (nzchar(summary_file)) {
+            per_file <- covr::coverage_to_list(cov)$filecoverage
+            writeLines(
+              c(
+                sprintf("## Coverage: %.2f%%", pct),
+                "",
+                "| File | Coverage |",
+                "| :--- | -------: |",
+                sprintf("| `%s` | %.2f%% |", names(per_file), unname(per_file))
+              ),
+              summary_file
+            )
+          }
+        shell: Rscript {0}
+
+      # The codecov/codecov-action step that used to sit here was removed on
+      # 2026-08-17. CODECOV_TOKEN is not set on this repository, so the upload
+      # failed with "Token required - not valid tokenless upload", and
+      # `fail_ci_if_error: true` turned that into a hard CI failure even though
+      # the suite was entirely green (131 passed, 0 failed). Coverage is now
+      # reported in-job (log, run summary, and the artifact below), which keeps
+      # an external service off the critical path. Restore the step if a token
+      # is ever provisioned.
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: cobertura.xml
+          if-no-files-found: warn
+
+      - name: Show testthat output
+        if: always()
+        run: |
+          ## --------------------------------------------------------------------
+          find '${{ runner.temp }}/package' -name 'testthat.Rout*' -exec cat '{}' \; || true
+        shell: bash
+
+      - name: Upload test results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-test-failures
+          path: ${{ runner.temp }}/package
