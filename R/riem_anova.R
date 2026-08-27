@@ -202,6 +202,13 @@ one_permutation <- function(x, stat_fun) {
     stat_fun()
 }
 
+# Orientation of the statistics shipped with the package: which tail of the
+# permutation distribution is evidence against the null. log Wilks' Lambda =
+# log|W| - log|T| is large-negative when the groups differ; Pillai's trace =
+# tr((T - W) T^-1) is large-positive. riem_anova() reads these.
+attr(log_wilks_lambda, "riemstats_tail") <- "left"
+attr(pillais_trace, "riemstats_tail") <- "right"
+
 #' Compute p-values using permutation test
 #'
 #' Computes a permutation-based p-value for a given super sample.
@@ -213,26 +220,66 @@ one_permutation <- function(x, stat_fun) {
 #' on the `CSuperSample` object (default: `log_wilks_lambda`).
 #' @param nperm The number of permutations to generate
 #' for estimating the p-value (default: 1000).
+#' @param p_method Character; which permutation p-value estimator to report.
+#' `"plugin"` (the default) returns the proportion of permuted statistics
+#' strictly more extreme than the observed one. `"exact"` returns
+#' `(1 + k) / (nperm + 1)`, where `k` counts the permuted statistics *at least
+#' as* extreme, so that the observed labelling is itself in the reference set.
+#' Both are in common use and neither dominates the other; see the
+#' *Choice of estimator* section below.
+#' @param tail Character or `NULL`; which tail of the permutation distribution
+#' counts as evidence against the null. `"left"` for statistics that are small
+#' under the alternative (`log_wilks_lambda`), `"right"` for statistics that
+#' are large under the alternative (`pillais_trace`). The default, `NULL`,
+#' reads the `riemstats_tail` attribute that the statistics shipped with this
+#' package carry, and falls back to `"left"` for a user-supplied statistic
+#' that declares no orientation.
 #'
-#' @return numeric A permutation-based p-value.
+#' @return numeric A permutation-based p-value in `[0, 1]`.
 #'
 #' @details
-#' The function computes the statistic on the observed data
-#' and compares it to the distribution of statistics computed
-#' on permuted samples. Under the null hypothesis that group labels
-#' are exchangeable, this provides an exact test (subject to Monte Carlo error).
+#' The function computes the statistic on the observed data and compares it to
+#' the distribution of statistics computed on permuted samples, in whichever
+#' tail `tail` selects.
 #'
 #' The permutation test:
 #' 1. Computes the test statistic on the observed data
 #' 2. Randomly shuffles group assignments while preserving sample sizes
 #' 3. Recomputes the test statistic on each permuted dataset
-#' 4. Calculates the p-value as the proportion of permuted statistics
-#'    that exceed the observed statistic
+#' 4. Locates the observed statistic in the resulting permutation
+#'    distribution and converts its position into a p-value
 #'
 #' This approach is computationally efficient and does not require
 #' parameter estimation or synthetic data generation.
+#'
+#' # Choice of estimator
+#'
+#' Write `B` for `nperm`. Let `k` be the number of permuted statistics
+#' *strictly* more extreme than the observed one and `k2` the number *at least
+#' as* extreme; the two differ only when a permuted statistic ties the observed
+#' one. Two estimators of the permutation p-value are in common use, and this
+#' function exposes both.
+#'
+#' `p_method = "plugin"` reports `k / B`. It is an *unbiased* estimator of the
+#' underlying permutation p-value, but it is not level-preserving: it can
+#' return exactly 0, which is not a valid p-value at any nominal level. Its
+#' attainable size at nominal `alpha` is `(floor(alpha * B) + 1) / (B + 1)`,
+#' which exceeds `alpha` unless `alpha * (B + 1)` happens to be an integer.
+#' At `B = 49`, a nominal 0.05 test has size 0.060; at `B = 999` the
+#' discrepancy is negligible.
+#'
+#' `p_method = "exact"` reports `(1 + k2) / (B + 1)`, treating the observed
+#' labelling as one of the `B + 1` equally likely labellings under the null.
+#' It is *valid* -- its size never exceeds the nominal level -- at the cost of a
+#' small upward bias, and it can never return 0.
+#'
+#' `"plugin"` is the default because it is the construction this function has
+#' always used: results published from earlier versions remain reproducible by
+#' the default call. `"exact"` is recommended for new work, and the default is
+#' expected to change in a future major version.
 #' @export
-riem_anova <- function(ss, stat_fun = log_wilks_lambda, nperm = 1000) {
+riem_anova <- function(ss, stat_fun = log_wilks_lambda, nperm = 1000,
+                       p_method = c("plugin", "exact"), tail = NULL) {
   if (!inherits(ss, "CSuperSample")) {
     stop("Argument 'ss' must be an object of class 'CSuperSample'.")
   }
@@ -242,14 +289,44 @@ riem_anova <- function(ss, stat_fun = log_wilks_lambda, nperm = 1000) {
     stop("CSuperSample must contain at least 2 groups for ANOVA analysis")
   }
 
+  p_method <- match.arg(p_method)
+
+  # Which tail counts as evidence against the null. The statistics shipped
+  # with the package declare their own orientation; a user-supplied statistic
+  # that declares none falls back to "left", the orientation this function
+  # assumed unconditionally before the argument existed.
+  if (is.null(tail)) {
+    tail <- attr(stat_fun, "riemstats_tail")
+    if (is.null(tail)) {
+      tail <- "left"
+    }
+  }
+  tail <- match.arg(tail, c("left", "right"))
+
   # Compute observed test statistic
   stat_val <- stat_fun(ss)
 
   # Generate permutation distribution
-  1:nperm |>
+  perm_vals <- 1:nperm |>
     purrr::map_dbl(
       \(m) one_permutation(ss, stat_fun)
-    ) |>
-    (\(v) stat_val > v)() |>
-    mean()
+    )
+
+  if (identical(p_method, "plugin")) {
+    # #{strictly more extreme} / nperm. Preserved exactly as written before
+    # p_method existed, so that the default call reproduces published results.
+    if (identical(tail, "left")) {
+      mean(stat_val > perm_vals)
+    } else {
+      mean(stat_val < perm_vals)
+    }
+  } else {
+    # (1 + #{at least as extreme}) / (nperm + 1).
+    n_extreme <- if (identical(tail, "left")) {
+      sum(perm_vals <= stat_val)
+    } else {
+      sum(perm_vals >= stat_val)
+    }
+    (1 + n_extreme) / (nperm + 1)
+  }
 }

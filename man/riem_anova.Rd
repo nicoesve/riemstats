@@ -4,7 +4,13 @@
 \alias{riem_anova}
 \title{Compute p-values using permutation test}
 \usage{
-riem_anova(ss, stat_fun = log_wilks_lambda, nperm = 1000)
+riem_anova(
+  ss,
+  stat_fun = log_wilks_lambda,
+  nperm = 1000,
+  p_method = c("plugin", "exact"),
+  tail = NULL
+)
 }
 \arguments{
 \item{ss}{An object of class \code{CSuperSample}.}
@@ -14,9 +20,25 @@ on the \code{CSuperSample} object (default: \code{log_wilks_lambda}).}
 
 \item{nperm}{The number of permutations to generate
 for estimating the p-value (default: 1000).}
+
+\item{p_method}{Character; which permutation p-value estimator to report.
+\code{"plugin"} (the default) returns the proportion of permuted statistics
+strictly more extreme than the observed one. \code{"exact"} returns
+\code{(1 + k) / (nperm + 1)}, where \code{k} counts the permuted statistics \emph{at least
+as} extreme, so that the observed labelling is itself in the reference set.
+Both are in common use and neither dominates the other; see the
+\emph{Choice of estimator} section below.}
+
+\item{tail}{Character or \code{NULL}; which tail of the permutation distribution
+counts as evidence against the null. \code{"left"} for statistics that are small
+under the alternative (\code{log_wilks_lambda}), \code{"right"} for statistics that
+are large under the alternative (\code{pillais_trace}). The default, \code{NULL},
+reads the \code{riemstats_tail} attribute that the statistics shipped with this
+package carry, and falls back to \code{"left"} for a user-supplied statistic
+that declares no orientation.}
 }
 \value{
-numeric A permutation-based p-value.
+numeric A permutation-based p-value in \verb{[0, 1]}.
 }
 \description{
 Computes a permutation-based p-value for a given super sample.
@@ -24,20 +46,45 @@ The statistic used for the permutation test can be specified
 via the \code{stat_fun} argument.
 }
 \details{
-The function computes the statistic on the observed data
-and compares it to the distribution of statistics computed
-on permuted samples. Under the null hypothesis that group labels
-are exchangeable, this provides an exact test (subject to Monte Carlo error).
+The function computes the statistic on the observed data and compares it to
+the distribution of statistics computed on permuted samples, in whichever
+tail \code{tail} selects.
 
 The permutation test:
 \enumerate{
 \item Computes the test statistic on the observed data
 \item Randomly shuffles group assignments while preserving sample sizes
 \item Recomputes the test statistic on each permuted dataset
-\item Calculates the p-value as the proportion of permuted statistics
-that exceed the observed statistic
+\item Locates the observed statistic in the resulting permutation
+distribution and converts its position into a p-value
 }
 
 This approach is computationally efficient and does not require
 parameter estimation or synthetic data generation.
 }
+\section{Choice of estimator}{
+Write \code{B} for \code{nperm}. Let \code{k} be the number of permuted statistics
+\emph{strictly} more extreme than the observed one and \code{k2} the number \emph{at least
+as} extreme; the two differ only when a permuted statistic ties the observed
+one. Two estimators of the permutation p-value are in common use, and this
+function exposes both.
+
+\code{p_method = "plugin"} reports \code{k / B}. It is an \emph{unbiased} estimator of the
+underlying permutation p-value, but it is not level-preserving: it can
+return exactly 0, which is not a valid p-value at any nominal level. Its
+attainable size at nominal \code{alpha} is \code{(floor(alpha * B) + 1) / (B + 1)},
+which exceeds \code{alpha} unless \code{alpha * (B + 1)} happens to be an integer.
+At \code{B = 49}, a nominal 0.05 test has size 0.060; at \code{B = 999} the
+discrepancy is negligible.
+
+\code{p_method = "exact"} reports \code{(1 + k2) / (B + 1)}, treating the observed
+labelling as one of the \code{B + 1} equally likely labellings under the null.
+It is \emph{valid} -- its size never exceeds the nominal level -- at the cost of a
+small upward bias, and it can never return 0.
+
+\code{"plugin"} is the default because it is the construction this function has
+always used: results published from earlier versions remain reproducible by
+the default call. \code{"exact"} is recommended for new work, and the default is
+expected to change in a future major version.
+}
+
