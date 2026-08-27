@@ -39,7 +39,7 @@ Imports:
     CovTools,
     sva,
     purrr,
-    riemtan,
+    riemtan (>= 0.3.0),
     methods
 Suggests: 
     testthat (>= 3.0.0),
